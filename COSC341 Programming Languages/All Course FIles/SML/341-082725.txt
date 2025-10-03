@@ -1,0 +1,25 @@
+Recursion:
+	Always follow the 'principle'
+	Can be constructed, 'never guess'
+	
+fun fact(0) = 1
+|   fact(n) = fact(n-1) * n;
+
+f(n)=n+5
+
+fun f(0)=5
+|   f(n)=f(n-1)+1;
+
+f(341)=false
+f(520)=true
+
+fun f(0)=true
+|   f(n)=not(f(n-1));
+
+f(a,b)=a*b
+
+fun f(a,0)=0
+|   f(a,b)=f(a,b-1)+a;
+
+
+ 

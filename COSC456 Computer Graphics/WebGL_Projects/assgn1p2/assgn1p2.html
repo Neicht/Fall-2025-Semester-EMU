@@ -1,0 +1,54 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script id="vertex-shader" type="x-shader/x-fragment">
+        #version 300 es
+        precision mediump float;
+
+        // FIX: Changed from vec4 to vec2 to match the JavaScript data.
+        in vec2 aPosition;
+        in vec4 aColor;
+
+        out vec4 vColor;
+
+        void main() {
+            // We now compose the final vec4 position manually.
+            // This is standard practice for 2D rendering.
+            gl_Position = vec4(aPosition, 0.0, 1.0);
+            vColor = aColor;
+        }
+    </script>
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        #version 300 es
+        precision mediump float;
+
+        in vec4 vColor;
+        out vec4 fColor;
+
+        void main() {
+            fColor = vColor;
+        }
+    </script>
+    <script type="text/javascript" src="../Common/MVnew.js"></script>
+    <script type="text/javascript" src="../Common/utility.js"></script>
+    <script type="text/javascript" src="../Common/flatten.js"></script>
+    <script type="text/javascript" src="../Common/initShaders.js"></script>
+    <script type="text/javascript" src="ShadedPolygons.js"></script>
+</head>
+<body>
+<canvas height="512" width="512" id="gl-canvas">
+</canvas>
+<br>
+xPosition:<br><input type="number" id="xValue" value="0" max="2" min="-2" step="0.1" ><br>
+yPosition:<br><input type="number" id="yValue" value="0" max="2" min="-2" step="0.1"><br>
+Make Shape:<br>
+<button id="triangle_button">Triangle</button>
+<button id="square_button">Square</button>
+<button id="circle_button">Circle</button>
+<button id="fancy_squares_button">Fancy</button><br>
+Clear:<br>
+<button id="clear_button">Clear</button>
+<br>
+</body>
+</html>

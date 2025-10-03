@@ -1,0 +1,581 @@
+<HTML>
+	<head>
+		<title>341-082725</title>
+		<link rel="stylesheet" type="text/css" href="classnotes.css" />
+	</head>
+
+<body>
+	<div class="notetitle">Aug 27, 2025 -- ML, Tuples, Lists</div>
+	<div class="notetitlebar">&nbsp;</div>
+
+<div class="sectitle">Outline</div>
+	<ul>
+		<li>Iteration vs. Recursion
+		<li>Scenarios Three: Subtyping Polymorphism -- Abstract Classes
+		<li>SML Language
+		<li>Useless Knowledge
+		<li>SML Tuple and List
+		<li>Lists and Construction
+		<li>Lists and Destruction
+	</ul>
+
+<div class="sectitle">Iteration vs. Recursion</div>
+	<ul>
+		<li>Recall way(n)
+		<li>Iteration
+		<ul>
+			<li>From 1 to n
+			<li>'Discover' a pattern suits for 'all 1 .. n'
+		</ul>
+<pre class="codec">
+way(1)=1	way(2)=2
+way(3)=3	way(4)=5	way(5)=8 ...
+
+way(3)=3 = way(1) + way(2)
+way(4)=5 = way(2) + way(3)
+way(5)=8 = way(3) + way(4)
+
+way(i) = way(i-1) + way(i-2)
+
+i works for 3 .. n
+way(6)=13  = way(5) + way(4)
+way(7)=21  = way(6) + way(5)
+way(8)=34  = way(7) + way(6)
+way(9)=55  = way(8) + way(7)
+way(10)=89 = way(9) + way(8)
+</pre>
+		<li>Recursion
+		<ul>
+			<li>Start from n, ONLY look for n-1
+			<li>Ensure the 'same rule' apply to 'all n .. 1'
+		</ul>
+<pre class="codec">
+N:   way(10)
+N-1: way(9) and way(8)
+way(10) = way(9) + way(8)
+
+way(n) = way(n-1) + way(n-2)
+
+way(9) = way(8) + way(7)
+way(8) = way(7) + way(6)
+way(7) = way(6) + way(5)
+way(6) = way(5) + way(4)
+way(5) = way(3) + way(4)
+way(4) = way(2) + way(3)
+way(3) = way(1) + way(2)
+
+way(1)=1	way(2)=2
+
+Then
+way(1)=1	way(2)=2
+way(3)=3   = way(1) + way(2)
+way(4)=5   = way(2) + way(3)
+way(5)=8   = way(3) + way(4)
+way(6)=13  = way(5) + way(4)
+way(7)=21  = way(6) + way(5)
+way(8)=34  = way(7) + way(6)
+way(9)=55  = way(8) + way(7)
+way(10)=89 = way(9) + way(8)
+</pre>
+		<li>Some thoughts
+		<ul>
+			<li>Iteration discovers a pattern through a sequence of index i
+			<li>Recursion discovers a pattern by adjancent pairwise N and N-1
+			<li>Iteration in general is harder in that to 'formulize a pattern'
+			<li>Recursion in general is hard in that to 'force =='
+			<li>Iteration covers by loop-index variable i++
+			<li>Recursion covers by function-parameter n--
+			<li>Iteration is moving forward, in human nature
+			<li>Recursion is moving backward, again human nature
+		</ul>
+	</ul>
+
+<div class="sectitle">Scenarios Three: Subtyping Polymorphism -- Abstract Classes</div>
+	<ul>	
+		<li>Motivation -- A Classical Example -- Rect/Circle/Shape
+<pre class="codec">
+//// approach 01 -- two classes no loop	
+public class Rect {
+	double width, height;
+	
+	public Rect(double w, double h) {
+		width = w;
+		height = h;
+	}
+	
+	public double area() {
+		return width * height;
+	}
+
+	public String display() {
+		return "Rectangle has area " + area();
+	}
+}
+
+public class Circle {
+	double radius;
+	
+	public Circle(double radius) {
+		this.radius = radius;
+	}
+	
+	public double area() {
+		return Math.PI * radius * radius;
+	}
+
+	public String display() {
+		return "Circle has area " + area();
+	}
+}
+
+public class Driver {	
+    public static void main(String[] args) {
+		Rect r1 = new Rect(3, 5);
+		System.out.println(r1.display());
+		
+		Circle c2 = new Circle(2);
+		System.out.println(c2.display());
+    }
+	
+	// How about to create 100 Rects and Circles then display them
+	// You need 100 variables
+	// You need 100 new()
+	// You need 100 .display() 
+	// Can you be lazy?
+}	
+</pre>	
+	<li>Solution: Use inheritance to create a class hierarchy, late binding, and abstract classes
+<pre class="codec">
+//// approach 02 -- common base class, loop and late binding overriding methods	
+public abstract class Shape {
+	public abstract double area();
+	abstract public String display();
+}
+
+public class Rect extends Shape {
+...
+}
+
+public class Circle extends Shape {
+...
+}
+
+public class Driver {
+    public static void main(String[] args) {
+		final int BOUND = 6;
+		Shape[] shapes = new Shape[BOUND];
+
+		shapes[0] = new Rect(3d, 5d);
+		shapes[1] = new Circle(2d);
+		shapes[2] = new Circle(4d);
+		shapes[3] = new Rect(4d, 6d);
+		shapes[4] = new Circle(3d);
+		shapes[5] = new Rect(1d, 2d);
+
+		for (int i=0; i< shapes.length; i++) {
+			System.out.println(shapes[i].display());
+		}
+
+		// shapes[i].display(); identical name, signature -- overriding, suitable for loop
+		// shapes[i].display(); MAGIC: somehow knows rect or circle object -- late binding
+		
+		// How about to create 100 Rects and Circles then display them
+		// You need 1 variable
+		// You need 100 --> 1
+		// You need 1 .display()
+		// Can you be more greedy?
+    }
+}
+</pre>				
+	<li>Homogenous Polymorphism is a solution to laziness (greediness), NOT a real programming skill
+	<li>Create objects by <a href="https://stackoverflow.com/questions/6094575/creating-an-instance-using-the-class-name-and-calling-constructor">class names</a> (no requirement)
+<pre class="codec">
+//// approach 03 -- import java.lang.reflect.Constructor;
+
+public class Driver02 {
+	
+    public static void main(String[] args) {
+		String[] objs = {"Rect", "Circle", "Circle", "Rect", "Circle", "Rect"};
+		Shape[] shapes = new Shape[objs.length];
+
+		Class< ?> clazz = null;
+		Constructor< ?> constructor = null;
+		Object o = null;
+
+		for (int i=0; i< shapes.length; i++) {
+			try {
+				clazz = Class.forName(objs[i]);
+				if (objs[i].equals("Rect")) {
+					constructor = clazz.getConstructor(Double.class, Double.class);
+					o = constructor.newInstance(i*2d, i*3d);
+				}
+				else {
+					constructor = clazz.getConstructor(Double.class);
+					o = constructor.newInstance(i * 1d);
+				}
+				shapes[i] = (Shape) o;
+			}
+			catch(Exception ee) {
+				System.out.println(ee);
+			}	
+		}
+
+		for (int i=0; i< shapes.length; i++) {
+			System.out.println(shapes[i].display());
+		}
+    }
+}
+</pre>
+	<li>Could you go further? 
+<pre class="codec">
+public class Driver05 {
+	
+    public static void main(String[] args) {
+		String[] objs = {"Rect", "Circle", "Circle", "Rect", "Circle", "Rect"};
+		// quick dirty but very bad approack for fast illustration only, better use Tuple or class etc.
+		Double[] vals = {3d,5d, 2d,-1d, 4d,-1d, 4d,6d, 3d,-1d, 1d,2d}; 
+		
+		Class< ?> classR = null;
+		Constructor< ?> constructor = null;
+		Object o = null;
+
+		for (int i=0; i< objs.length; i++) {
+			o = createR(objs[i], vals[i*2], vals[i*2+1]);
+			System.out.println(((Shape) o).display());
+		}
+    }
+	
+	private static Object createR(String className, double... d) {
+		Class< ?> classR = null;
+		Constructor< ?> constructor = null;
+		Object o = null;
+		
+		try {
+			classR = Class.forName(className);
+			if (className.equals("Rect")) {
+				constructor = classR.getConstructor(double.class, double.class);
+				o = constructor.newInstance(d[0], d[1]);
+			}
+			else {
+				constructor = classR.getConstructor(double.class);
+				o = constructor.newInstance(d[0]);
+			}
+		}
+		catch(Exception ee) {
+			System.out.println(ee);
+		}	
+		
+		return o;
+	}
+}
+</pre>		
+	</ul>
+	
+
+<div class="sectitle">SML Language</div>
+	<ul>
+		<li>Lambda Calculus based, recursion driven language
+		<li>"The MOST stricted typed" programming lanugage ever
+		<li>Datatype: int, real, bool, string, char
+		<li>Case Sensitive: True/TRUE -- error, should be <tt>true</tt>
+		<li>SML also has "short-circuiting" and/or
+		<li>Online SML <a href="https://sosml.org/editor"> SOSML Editor </a>
+	</ul>
+
+
+<div class="sectitle">SML Language Other Than Java</div>
+	<ul>
+		<li>Negative
+<pre class="codec">
+Java 	-1
+SML		~1
+</pre>
+		<li>
+<pre class="codec">Char
+Java	'a'
+SML		#"a"
+</pre>
+		<li>Integer Division, Mod
+<pre class="codec">
+Java		12/5		12%7
+SML		12 div 5	12 mod 7
+Java		12/5.0 no error, returns 2.4
+SML			12/5.0 not allowed!
+SML			12.0/5.0 or real(12)/5.0
+
+SML			1.0 * 2.0 is allowed (bad language design)
+SML			1.0 * 2  not allowed
+</pre>
+		<li>String cat ^
+<pre class="codec">
+Java 		"abc" + "def"
+SML 		"abc" ^ "def";
+</pre>
+		<li>Boolean Comparison
+<pre class="codec">
+Java		==, !=, <, <=, >, >=, 
+SML		=, <>, next 4 same
+</pre>
+		<li>*NO = or <> on reals
+<pre class="codec">
+Java 		1.0==2.0	no error, NOT recommended!
+Java		double a=1.0;   a==1.0
+SML			1.0=2.0 not allowed! 
+</pre>
+		<li>
+<pre class="codec">Logical
+Java		&&, ||, !
+SML		andalso, orelse, not
+</pre>
+		<li>Conditional
+<pre class="codec">
+Java		a = (1<2)? 100: 200;
+SML			a = if (1<2) then 100 else 200;
+</pre>
+		<ul>
+			<li>if-then-else returns a 'value'
+			<li>'then' value and 'else' value must have same type
+			<li>ALL if, then, else must be present
+		</ul>
+		<li>
+<pre class="codec">Type converstion: int to real
+Java	(double) 2, new Double(2);		
+SML		real(2)
+</pre>
+		<li>Type converstion: real to int
+<pre class="codec">
+Java	(int) 2.0, Math.floor, Math.ceil, Math.round
+SML		floor(), 		ceil(), round(), trunc()
+</pre>
+		<li>Type converstion: char to string
+<pre class="codec">
+SML		str
+</pre>
+		<li>Type converstion: char <--> int
+<pre class="codec">
+SML		ord		ord(#"b")=98
+SML		chr	chr(98)=#"b"
+</pre>
+		<li>Variable definition (also assignment)
+<pre class="codec">
+Java	int a = 5;
+SML		val	a = 5;
+</pre>
+	</ul>
+
+<div class="sectitle">Useless Knowledge</div>
+<ul>
+	<li>Floor(), Ceil(), Round(), Trunc()
+<pre class="codec">
+In general they all take a real value and returns an int.
+
+1. N > 0, say 3 < 3.5 <3.67 < 4
+	(1) floor -> 3 
+	(2) ceil -> 4
+	(3) round -> 4 (since | N |> 3.5)
+	(4) trunc -> 3 (simply drop .67)
+
+2. N < 0, say -4 < -3.67 < -3.5  < -3
+	(1) floor -> -4 
+	(2) ceil -> -3
+	(3) round -> -4 (since | N | > 3.5)
+	(4) trunc -> -3 (simply drop .67)
+</pre>		
+	<li>Only type, there is no assignment using any one of them
+</ul>
+
+
+<div class="sectitle">SML Tuples (10%-) and Lists (90%+)</div>
+	<ul>
+		<li>Tuple Type Constructor -- ( &nbsp;  )
+<pre class="codec">
+val t1 = (1,2);
+val t2 = (3,4,1);
+val t3 = (1.0, "abc", #"d", 4);
+val t4 = (1, "ab");
+val t5 = ("ab", 1);
+val t6 = (real(1), "a"^"bc", chr 76, if 1<2 then 4 else 5);
+val t7 = (3, (4,1));
+
+#2 (t1);
+#3 (t3);
+#1 (#2 (t7));
+</pre>
+		<li>Form ONE unit
+		<li>Scope for function call, Scope for function return
+<div class="codec">
+funcall One Unit after fun name
+funret One Unit after return
+<div>
+		<li>There is no such thing as a tuple of one
+<pre class="codec">
+(2) => int
+((1), (2), (3)) == (1,2,3) => int * int * int
+</pre>			
+		<li>Can be nested
+<pre class="codec">
+(1, (2.0, "3")) => int * (real * string)
+(1, (2.0, "3"), ((#"4", (5,6)),"7")); => nt * (real * string) * ((char * (int * int)) * string)
+</pre>			
+		<li>Only one operator -- <tt>#1</tt>
+<pre class="codec">
+#2(2,3,5,7) => 3
+#2(1, (2.0, "3")) => (2.0, "3")
+</pre>			
+	</ul>
+
+<div class="sectitle">Lists cnd Construction</div>
+	<ul>
+		<li>List Type Constructor -- <tt>[ &nbsp; ]</tt>
+		<li>List is the most important data type in ALL recursion based PLs
+		<ul>
+			<li>All elements of a list must be the same type
+			<li>List length can be arbitrary
+			<li>List of zero -- special case -- <tt>nil</tt>
+			<li>In this class, empty list should be <font color="red">nil</font>, NOT <font color="blue">[]</font>!!! 
+		</ul>
+		<li>Valid lists
+<pre class="codec">
+[1,2,3];
+[(1,2,3)];
+[(1, 1<2, "abc"), (2, 2=3, "e")];
+
+[false];
+[[1], [2,3]];
+
+[[3]];
+[[[false]]];
+[];
+
+([(2,3)], 4);
+[([(2,3)], 4)];
+
+
+[1.0,2.0];
+[(1,2),(1,3)];
+[(1< 2, "3", 4.0), (false, "55",real(2))];
+[ (1,(2,3)), (4,(5,6)) ];
+[1<2, false, 3<>5];
+[[1,2,3],[1,2]];
+[[1], [], [2,3]];
+[[1], nil, [2,3]];
+
+[(1, nil), (2, [3])];
+[(nil, nil), ([2], [3])];
+([nil, nil], [[2],[3]]);
+
+[[(2<3, 1)]];
+
+val bar1 = ([11,22], [33,44]); same type as val bar1 = ([11,22], [33]);
+val bar2 = [(11,22), (33,44)]; same type as val bar2 = [(11,22)];
+
+[];
+nil;
+</pre>	
+			
+		<li><tt>'a list </tt> -- a list of elements, type unknown, OR arbitrary type -- future parametrized polymorphism
+		<li>Empty list check operator -- <tt>null</tt>
+		<ul>
+			<li><font color="red">Never use L=[]</font>, use <tt>null (L)</tt>
+			<li><tt>'a list</tt> vs. <tt>''a list</tt> -- eqltype
+			<li><tt>L=[]</tt> limits type of L as <tt>'' a list</tt>
+<pre class="codec">
+val L=[1.0];
+null L;
+L=[];
+</pre>
+		</ul>
+		<li>Two list constructive operators -- <tt>::</tt> and <tt>@</tt>
+		<ul>
+			<li>@ -- append -- concatenates two lists of the same type -- <font color="red">DO NOT USE @ in this class!!</font>
+			<li>:: -- cons -- putting a new element on the front of the old list
+<pre class="codec">
+[1,2,3]@[4,5,6];
+
+3:: [1,2];
+(1>5) :: [true];
+4::[3,2,1];
+(1,2)::[(3,4)];
+(real 5) :: nil; ==> you will do a lot
+[1,2] :: [[3,4,5], [6]]; ==> very important
+nil :: [[3,4,5]]; ==> useful
+nil:: [[2<4]];
+</pre>	
+		</ul>
+		<li>Common mistakes
+<pre class="codec">
+In this class, since @ not used, no problem any more
+[1]:: [[2], [3,4]]
+[1] @ [[2], [3,4]]
+
+1:: [2,3,4];
+1@[2,3,4];
+</pre>
+		<li>:: is right-associative -- foundation of recursive programming
+<pre class="codec">
+val z = 1::2::3::[];
+
+1::2::[3,4]; is fine 
+same as 1:: (2 :: [3,4])
+
+1::2::3; ==> (1 :: (2::3)) == but 3 is not int list
+1::2::3::nil; ==> prefect
+</pre>
+	</ul>
+
+<div class="sectitle">Lists and Destruction</div>
+	<ul>
+		<li>Two list destructive operators -- <tt>hd</tt> and <tt>tl</tt>
+		<ul>
+			<li><tt>hd</tt> function gets the head of a list -- the first element
+			<li><tt>tl</tt> function gets the tail of a list-- the whole list after the first element
+			<li>Unlike tuple, there is NO index <tt>#</tt> in list
+			<li>In a "fundamental" recursion PL, only take out the 1st (not 2nd or 3rd...) element
+<pre class="codec">
+val list1 = [1,2,3];
+val list2 = [2.0, real 3];
+val list3 = [[1,2], [3,4], [5,6]];
+val list4 = [[1,2], [3,4], [4,5,6,7]];
+val list5 = [1<2, false, 3<>5];
+
+hd(list3);
+tl (list1);
+hd (list1);
+hd (tl list1);
+tl (tl list1);
+hd (tl (tl list1));
+tl (tl (tl list1));
+
+hd (tl (tl (tl list1)));
+tl (tl (tl (tl list1)));
+
+list 3
+1st [1,2] (hd)
+2nd [3,4] (hd tl)
+3rd [5,6] (hd (tl tl))
+1 -- hd (hd L)
+2 -- hd (tl (hd L))
+3 -- hd (hd (tl L))
+4 -- hd (tl (hd (tl L)))
+5 -- hd (hd (tl (tl L)))
+6 -- hd (tl (hd (tl (tl L))))
+</pre>
+		</ul>
+		<li>String as Char List -- <tt>explode</tt> and <tt>implode</tt>
+<pre class="codec">
+explode "hello";
+val it = [#"h",#"e",#"l",#"l",#"o"] : char list
+
+- implode [#"h",#"i"];
+val it = "hi" : string
+</pre>			
+		</ul>
+	
+
+
+<p>&nbsp;
+<p>&nbsp;
+<p>&nbsp;
+
+</body>
+</HTML>

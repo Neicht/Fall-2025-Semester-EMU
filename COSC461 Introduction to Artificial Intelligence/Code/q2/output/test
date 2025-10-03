@@ -1,0 +1,50 @@
+Board 1
+G 4 2 
+G R G 
+6 5 R 
+
+Board 2
+G 4 2 
+6 R G 
+G 5 R 
+
+Board 3
+G 4 2 
+6 R R 
+G 5 G 
+
+Board 4
+G R 2 
+6 4 R 
+G 5 G 
+
+Board 5
+G 2 R 
+6 4 R 
+G 5 G 
+
+Board 6
+2 G R 
+6 4 R 
+G 5 G 
+
+Board 7
+2 4 R 
+6 G R 
+G 5 G 
+
+Board 8
+2 4 R 
+6 5 R 
+G G G 
+
+Board 9
+2 4 R 
+6 R 5 
+G G G 
+
+Board 10
+2 4 5 
+6 R R 
+G G G 
+

@@ -1,0 +1,157 @@
+<HTML>
+	<head>
+		<title>341-082525</title>
+		<link rel="stylesheet" type="text/css" href="classnotes.css" />
+	</head>
+
+<body>
+	<div class="notetitle">Aug 25, 2025 -- Introduction</div>
+	<div class="notetitlebar">&nbsp;</div>
+
+<div class="sectitle">Outline</div>
+	<ul>
+		<li>What is Programming
+		<li>Language Paradigm
+		<li>Recursive Thinking	
+	</ul>
+
+<div class="sectitle">What is Programming</div>
+	<ul>
+		<li>There are TWO (2) foundations for Computers - Turing Machine, Church's Lambda Calculus
+		<ul>
+			<li>Every computer today is based on TURING MACHINE
+			<li>Programming is to create instruction sequence to 'drive' the machine
+			<li>Turing Machine -- Iteration === Lambda Calculus -- Recursion
+		</ul>
+		<li>What is the requirement of a programming language?
+		<ul>
+			<li>A PL must be <font color="red">Universal</font>
+			<li>Universal means -- either has iteration or recursion
+		</ul>
+	</ul>
+
+
+<div class="sectitle">Language Paradigm</div>
+	<ul>
+		<li>There over 3000 PLs so far, too many, how to organize?
+<pre class="codec">
+1. 
+open class Person(age: Int, name: String) {
+    init {
+        println("My name is $name.")
+        println("My age is $age")
+    }
+}
+
+class Footballer(age: Int, name: String): Person(age, name) {
+    fun playFootball() {
+        println("I play for LA Galaxy.")
+    }
+}
+
+fun main(args: Array < String>) {
+    val f1 = Footballer(29, "Christiano")
+    f1.playFootball()
+}
+
+
+2.
+sealed class List< out A> {
+    companion object {
+        fun < A> of(vararg aa: A): List< A> {
+			val tail = aa.sliceArray(1 until aa.size)
+			return if (aa.isEmpty()) Nil else Cons(aa[0], of(*tail))
+		}
+    }
+}
+object Nil : List< Nothing>()
+data class Cons< out A>(val head: A, val tail: List< A>) : List< A>()
+
+fun main(args: Array< String>) {
+	val ints = List.of(1, 2, 3, 4)
+	fun sum(xs: List < Int>): Int =
+    	when (xs) {
+		is Nil -> 0
+        	is Cons -> xs.head + sum(xs.tail)
+	}
+	println(sum(ints))
+}
+
+3. 
+datatype intList = 
+   NIL
+| CONS of int * intList;
+
+val ints = CONS(1,CONS(2,CONS(3,(CONS(4,NIL)))));
+
+fun sum(lst: intList): int = 
+  case lst of
+      NIL => 0
+    | CONS(x,xs) => x + sum xs; 
+    
+sum ints;   q
+</pre>				
+		<li>"Paradigm" is used to group lanuages in 'higher concept'
+		<li>Recursion based language -- functional paradigm
+	</ul>
+
+
+<div class="sectitle">Recursive Thinking</div>
+	<ul>
+		<li>Recursion is sound
+			<ul>
+				<li>One of the two computer foundations -- Lambda Calculus
+				<li>Mathematical induction based
+			</ul>
+		<li>Recursion and mathematical induction
+		<ul>
+			<li>You all know mathematical induction
+			<li>Recursion is 'the same' approach of induction -- N is true, the next one is true
+			<li>Recursion is 'local' -- focus only on N and N's next adjacent case
+		</ul>
+		<li>Number of ways of stairs -- each step 1 or 2 stairs, how many diffent way to reach nth stair?
+		<li>Solution 1: forward thinking, interation in Java	
+<pre class="codec">
+public class w {
+	public static void main(String[] args)  {
+		int[] w = new int[11];
+		w[1] = 1;
+		w[2] = 2;
+		for (int i=3; i<=10; i++) {
+			w[i] = w[i-1] + w[i-2]; 
+		}
+		System.out.println("w(10) = " + w[10]);
+	}
+}
+Note: without array is possible
+</pre>
+	<li>Solution 2: backward thinking, recursion in ML
+<pre class="codec">
+
+N: w(n)
+N-1: w(n-1) + w(n-2)
+
+fun w(n) = 
+	if n=1 then 1
+	else if n=2 then 2
+	else w(n-1) + w(n-2);
+
+fun w(1) = 1
+|   w(2) = 2
+|   w(n) = w(n-1) + w(n-2);
+w(10);
+</pre>	
+	<li>Recursion is <font color="red">local</font> vs. Itration is global
+	<li>Syntax of recursion is <font color="red">short</font> in recursion based languages
+</ul>
+
+
+
+
+	
+<p>&nbsp;
+<p>&nbsp;
+<p>&nbsp;
+
+</body>
+</HTML>

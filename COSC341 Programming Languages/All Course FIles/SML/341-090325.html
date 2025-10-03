@@ -1,0 +1,240 @@
+<HTML>
+	<head>
+		<title>341-090325</title>
+		<link rel="stylesheet" type="text/css" href="classnotes.css" />
+	</head>
+
+<body>
+	<div class="notetitle">Sep 03, 2025 -- Recursions</div>
+	<div class="notetitlebar">&nbsp;</div>
+
+<div class="sectitle">Outline</div>
+	<ul>
+<!--		<li>Useless Knowledge -->
+		<li>Functions
+		<li>Recursion
+		<li>Principle of Recursion
+		<li>Recursion on Numbers
+		<li>Recursion Priciple Applies
+		<li>Recursion Levels
+	</ul>
+
+<div class="sectitle">Functions</div>
+	<ul>
+		<li>Functions are mappings: input -> output
+		<li>Functions as values
+		<ul>
+			<li>In SML, functions have types: input para type -> return type
+<pre class="codec">
+fun foo(n)=n+2; 
+int -> int type, returns ONE value
+
+fun foo(n, m) = ((n div m), 2);
+int * int -> int * int
+
+op div;
+real;
+
+</pre>
+			<li>Functions can be assigned
+<pre class="codec">
+val aaa = real;
+(aaa, implode);
+</pre>
+			<li>Functions as components
+<pre class="codec">
+floor;
+ceil;
+round;	
+val L = [floor, ceil, round];
+hd (tl L);	
+</pre>
+			<li>More about functions -- first class entities -- later
+		</ul>
+</ul>
+
+<div class="sectitle">Recursion</div>
+	<ul>
+		<li>Recursion based on Church's Lambda Calculus, One of the two foundations
+<pre class="codec">
+int fact(int n) {
+	if (n == 0) {
+		return 1;
+	}
+	else {
+		return fact(n-1) * n;
+	}
+}
+</pre>
+		<li>Recursion in ML
+<pre class="codec">
+fun fact n =
+	if n = 0 then 1
+	else fact(n-1) * n;
+</pre>
+		<li>Recursions
+		<ul>
+			<li>Are functions
+			<li>Calls itself <font color="red">with identical parameter 'list'</font> in function definition
+			<li>Consists of -- A basis
+			<li>Consists of -- An inductive step
+		</ul>
+	</ul>
+
+<div class="sectitle">Principle of Recursion</div>
+	<ul>
+		<li>0, 1, 2, 3, 4, 5
+		<li>Recursions are 'constructed', not 'guessed'
+		<li><font color="red">Never ever 'trace' recursions</font>
+		<li>Complete Different Mindset -- <font color="red">Local</font> (vs. Global in Iteration)
+		<li>How to "construct" a recursion
+		<ul>
+			<li>0. Type of function (helps a lot) also understand what the function does (very important)
+			<li>1a. Base in (value)
+			<li>1b. Base out (value)
+			<li>2a. N in (parameter)
+			<li>2b. N case (function def)
+			<li>3a. N-1 in (parameter)
+			<li>3b. N-1 case (function call)
+			<li>4. N == N-1 (expresson)
+			<li>5. Put all together
+<pre class="codec">
+fun <2b> =
+    if <1a> then <1b>
+    else <4>	
+</pre>
+		</ul>	
+	</ul>
+
+<div class="sectitle">Recursion on Numbers</div>
+	<ul>
+		<li>Factorial
+<pre class="codec">
+fun fact (n) = 
+	if n=0 then 1
+	else fact (n-1) * n;
+</pre>
+		<li>How to "construct" a recursion
+		<ul>
+			<li>0. Type: int -> int
+			<li>1a. Base in: 0 < n=0 > <br>
+				note: the most general simple case -- 0 is better than 1
+			<li>1b. Base out: 1 (fact 0 = 1)<br>
+				note: type helps to guarantee base in and base out value types
+			<li>2a. N in: n
+			<li>2b. N case: fact(n)<br>
+				note: type helps to guarantee input value type
+			<li>3a. N-1 in: n-1
+			<li>3b. N-1 case: fact(n-1)<br>
+				note: N-1 is the same function call with N-1 arguments
+			<li>4. N == N-1: <br>
+				let n=5<br>
+				fact(5) = 1*2*3*4*5 == fact(4) = 1*2*3*4  *5 <br>
+				fact(n) == fact(n-1) * n<br>
+				note: the crucial step in recursion
+			<li>5. Put all together
+	<pre class="codec">
+fun <2b> =
+    if <1a> then <1b>
+    else <4>		
+			
+fun fact(n) = 
+	if n=0 then 1
+	else fact(n-1) * n;	
+</pre>
+		</ul>
+
+		<li>Product
+<pre class="codec">
+fun mul(a,b)=
+	if b=0 then 0
+	else mul(a, b-1) + a;
+</pre>
+		<li>How to "construct" a recursion
+		<ul>
+			<li>0. Type: (int,int) -> int
+			<li>1a. Base in: b=0, a arbitary  <br>
+				note: the most general simple case -- 0 is better than 1
+			<li>1b. Base out: 0 (mul(a,0) = 0)<br>
+				note: type helps to guarantee base in and base out value types
+			<li>2a. N in: (a,b)
+			<li>2b. N case: mul(a,b)<br>
+				note: type helps to guarantee input value type
+			<li>3a. N-1 in: (a, b-1)
+			<li>3b. N-1 case: mul(a,b-1)<br>
+				note: N-1 is the same function call with N-1 arguments
+			<li>4. N == N-1: <br> 
+				let a=3, b=5<br>
+				mul(3,5) = 3+3+3+3+3 == mul(3,4) = 3+3+3+3  + 3 <br>				
+				mul(a,b) == mul(a, b-1) + a<br>
+				note: the crucial step in recursion
+			<li>5. Put all together
+	<pre class="codec">
+fun <2b> =
+    if <1a> then <1b>
+    else <4>		
+			
+fun mul(a,b)=
+	if b=0 then 0
+	else mul(a, b-1) + a;
+</pre>
+		</ul>
+</ul>
+
+<div class="sectitle">Recursion Priciple Applies</div>
+<ul>
+	<li>Trust the recursion priciple
+	<li>Reduce -- isE(n) to test if a non negative input is an even number (no mod operator)
+<pre class="codec">
+0 type: int -> bool
+1a Base in: 0,    1  
+1b Base out: true,  false
+2a N in: n
+2b N: isE(n)
+3a N-1 in: n-1
+3b N-1:isE(n-1)
+4 ==
+  let n=6
+  	isE(6)=true  == isE(5)=false
+  	isE(5)=false == isE(4)=true
+
+  	isE(4)=true  == isE(3)=false
+  	isE(3)=false == isE(2)=true
+
+  	isE(2)=true  == isE(1)=false
+  	isE(1)=false STOP
+  	
+  	formula
+  	isE(n) = not isE(n-1)
+  
+isE(341);    
+isE(34);
+</pre>
+		<li>What is really behind?
+<pre class="codec">
+Iteration: find a 'magic' formula which works for all index 'i'
+
+Recursion: find a 'universal' equation which works for all input 'n'
+CORRECTNESS IS Guaranteed by mathematical induction
+</pre>
+		</ul>
+</ul>
+
+<div class="sectitle">Recursion Levels</div>
+	<ul>
+		<li>1. Straight -- one base case, simple to ==
+		<li>2. Advanced -- more base cases, trickier ==
+		<li>3. Helper -- addition parameter, tail
+		<li>4. Higher -- higher order function, ONE LINE
+		<li>5. Subprogram -- recursion thinking, a whole
+		<li>6. Forced -- non-recurion in nature
+		<li>7. me
+	</ul>
+
+
+<p>&nbsp;
+<p>&nbsp;
+<p>&nbsp;
+
+</body>
+</HTML>

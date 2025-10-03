@@ -1,0 +1,19 @@
+counting digits
+
+fun f(0)=0
+|   f(n)=f(n div 10) + 1;
+
+f(341);
+
+Sum of 1+2+...+n
+
+fun f(0) = 0
+|   f(n) = f(n-1) + n;
+
+
+length of a list
+
+fun f(nil)=0
+|   f(L) = f(tl L) + 1;
+
+f([1,2,3,4]);
