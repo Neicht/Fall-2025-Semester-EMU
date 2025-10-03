@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-import math
 
 
 # Find n^2
 def square(n):
 	if n>0:
-		return (square(n-1) + ((2*n) - 1))
+		return square(n - 1) + ((2 * n) - 1)
 	else:
 		return 0
 	
@@ -80,4 +79,4 @@ n = 2
 a = 4
 b = 5
 
-print(twosquare(n))
+print(fib(b))

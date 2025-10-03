@@ -2,7 +2,10 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/RemoteDevelopment.iml" filepath="$PROJECT_DIR$/.idea/RemoteDevelopment.iml" />
+      <module fileurl="file://$PROJECT_DIR$/COSC341 Programming Languages/COSC341 Programming Languages.iml" filepath="$PROJECT_DIR$/COSC341 Programming Languages/COSC341 Programming Languages.iml" />
+      <module fileurl="file://$PROJECT_DIR$/COSC456 Computer Graphics/COSC456 Computer Graphics.iml" filepath="$PROJECT_DIR$/COSC456 Computer Graphics/COSC456 Computer Graphics.iml" />
+      <module fileurl="file://$PROJECT_DIR$/COSC461 Introduction to Artificial Intelligence/COSC461 Introduction to Artificial Intelligence.iml" filepath="$PROJECT_DIR$/COSC461 Introduction to Artificial Intelligence/COSC461 Introduction to Artificial Intelligence.iml" />
+      <module fileurl="file://$PROJECT_DIR$/COSC541 Foundations of Automata and Languages/COSC541 Foundations of Automata and Languages.iml" filepath="$PROJECT_DIR$/COSC541 Foundations of Automata and Languages/COSC541 Foundations of Automata and Languages.iml" />
     </modules>
   </component>
 </project>
