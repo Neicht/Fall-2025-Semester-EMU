@@ -1,3 +1,5 @@
+package q4.program;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -7,34 +9,25 @@ public class SudokuTester {
     //Main method for testing
     public static void main(String[] args) {
         //specifc sudoku puzzle
-        int[][] board = {{0, 0, 0, 0, 0, 0, 9, 0, 0},
-                {0, 0, 5, 9, 0, 3, 0, 4, 0},
-                {9, 7, 0, 5, 0, 0, 6, 0, 0},
-                {0, 0, 0, 0, 0, 2, 0, 6, 8},
-                {1, 8, 0, 0, 0, 0, 0, 2, 9},
-                {5, 2, 0, 8, 0, 0, 0, 0, 0},
-                {0, 0, 2, 0, 0, 1, 0, 3, 6},
-                {0, 1, 0, 7, 0, 9, 4, 0, 0},
-                {0, 0, 4, 0, 0, 0, 0, 0, 0}};
+
+        char[][] board = null;
         try {
-            String path = "q4/file7.txt";
+            String path = "/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/q4/file7.txt";
             File inputFile = new File(path);
             Scanner scanner = new Scanner(inputFile);
-            ArrayList<Character> charList = new ArrayList<>();
-            while (scanner.hasNextLine()) {
-               String line = scanner.nextLine();
-               for (char c : line.toCharArray()) {
-                   charList.add(c);
-               }
+            int n = scanner.nextInt();
+            board = new char[n][n];
+            scanner.nextLine();
+            scanner.nextLine();
+            for (int i = 0; i < n; i++) {
+                String line = scanner.nextLine().replaceAll(" ", "");
+                board[i] = line.toCharArray();
             }
-            System.out.println(charList);
-
-
+            scanner.close();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
-        //solve sudoku puzzle
         Sudoku s = new Sudoku(board);
         s.solve();
     }

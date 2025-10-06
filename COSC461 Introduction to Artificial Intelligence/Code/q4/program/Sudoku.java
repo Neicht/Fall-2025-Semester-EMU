@@ -1,15 +1,13 @@
-//This program solves sudoku puzzle using constraint satisfication, 
+package q4.program;//This program solves sudoku puzzle using constraint satisfication,
 //backtracking, and recursion
 
 public class Sudoku {
-    private int n;
-    private int[][] board;                    //sudoku board
+    private char[][] board;                    //sudoku board
+    private int n = 9;
 
     //Constructor of Sudoku class
-    public Sudoku(int[][] board) {
-        ;
+    public Sudoku(char[][] board) {
         this.board = board;                   //set initial board
-        this.n = board.length;
     }
 
     //Method solves a given puzzle
@@ -23,27 +21,25 @@ public class Sudoku {
     //Method fills a board using recursion/backtracking. 
     //It fills the board starting at a given location
     private boolean fill(int location) {
-        int x = location / 9;              //find x,y coordinates of
-        int y = location % 9;              //current location
+        int x = location / n;              //find x,y coordinates of
+        int y = location % n;              //current location
         int value;
 
 
-        if (location > 80)               //if location exceeds board
+        if (location > (n * n) - 1)               //if location exceeds board
             return true;                 //whole board is filled
-        else if (board[x][y] == 'b' || Integer.parseInt(String.valueOf(board[x][y])) >= 0
-                && Integer.parseInt(String.valueOf(board[x][y])) < Math.pow(n, 2)) {       //if location already has value
-            return fill(location + 1);     //fill the rest of borad
-        } else if (board[x][y] == 'o') {
+//           //fill the rest of borad
+        else if (board[x][y] == 'o') {
             for (value = 1; value <= 9; value += 2) {
-                board[x][y] = value;
+                board[x][y] = (char) (value + '0');
                 if (check(x, y) && fill(location + 1))
                     return true;
             }
             board[x][y] = 'o';
             return false;
         } else if (board[x][y] == 'e') {                        //otherwise
-            for (value = 0; value <= 8; value += 2) {
-                board[x][y] = value;     //try numbers 1-9 at the location
+            for (value = 2; value <= 8; value += 2) {
+                board[x][y] = (char) (value + '0');     //try numbers 1-9 at the location
 
                 if (check(x, y) && fill(location + 1))
                     return true;         //if number causes no conflicts and the rest
@@ -52,8 +48,8 @@ public class Sudoku {
             board[x][y] = 'e';             //if none of numbers 1-9 work then
             return false;                //empty the location and backtrack
         } else if (board[x][y] == 'w') {
-            for (value = 0; value <= 9; value++) {
-                board[x][y] = value;     //try numbers 1-9 at the location
+            for (value = 1; value <= 9; value++) {
+                board[x][y] = (char) (value + '0');    //try numbers 1-9 at the location
 
                 if (check(x, y) && fill(location + 1))
                     return true;         //if number causes no conflicts and the rest
@@ -61,10 +57,12 @@ public class Sudoku {
 
             board[x][y] = 'w';             //if none of numbers 1-9 work then
             return false;                //empty the location and backtrack
-        }
-        return false;
-    }
+        } else {    //if location already has value
+            return fill(location + 1);
 
+        }
+
+    }
 
     //Method checks whether a value at a given location causes any conflicts
     private boolean check(int x, int y) {
