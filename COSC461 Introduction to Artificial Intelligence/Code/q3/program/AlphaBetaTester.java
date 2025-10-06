@@ -8,7 +8,7 @@ public class AlphaBetaTester
    public static void main(String[] args)
    {
        //play tic-tac game
-       AlphaBeta a = new AlphaBeta(4);
+       AlphaBeta a = new AlphaBeta((int)Math.pow(2, 2));
 	   a.play();
    }
 }

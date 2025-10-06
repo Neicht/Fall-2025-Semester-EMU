@@ -10,8 +10,8 @@ import java.util.Scanner;
 
 public class AlphaBeta {
     private final char EMPTY = ' ';                //empty slot
-    private final char COMPUTER = 'X';             //computer
-    private final char PLAYER = '0';               //player
+    private final char COMPUTER = 'x';             //computer
+    private final char PLAYER = 'o';               //player
     private int MIN = 0;                     //min level
     private int MAX = 1;                     //max level
     private final int LIMIT = 8;
@@ -39,13 +39,13 @@ public class AlphaBeta {
         }
 
         private int getPlayerScore() {
-            update();
-            return playerScore;
+
+            return this.playerScore;
         }
 
         private int getComputerScore() {
-            update();
-            return computerScore;
+
+            return this.computerScore;
         }
 
 
@@ -57,8 +57,9 @@ public class AlphaBeta {
 
     //Constructor of q3.program.AlphaBeta class
     public AlphaBeta(int size) {
-        this.board = new Board((int) Math.pow(size, 2));              //create game board
-        this.size = size;                          //set board size
+        this.size = size;
+        this.board = new Board(size);              //create game board
+                               //set board size
     }
 
 
@@ -156,8 +157,6 @@ public class AlphaBeta {
     //Method computes minmax value of a board
     private int minmax(Board board, int level, int depth, int alpha, int beta) {
         if (full(board) || depth >= LIMIT) {
-            if(terminalValue(board) > 0)
-                System.out.println(terminalValue(board));
             return terminalValue(board);
         }            //if board is terminal or depth limit is reached
         else                                       //evaluate board
@@ -206,26 +205,107 @@ public class AlphaBeta {
         }
     }
 
-    public int terminalValue(Board board) {
-        if(full(board)){
-            if(playerWin(board)){
-                return -5;
-            }else if(computerWin(board)){
-                return 5;
-            }else{
-                return 1;
+//    public int terminalValue(Board board) {
+//        board.update();
+//        if(full(board)){
+//            if(playerWin(board)){
+//                return -5;
+//            }else if(computerWin(board)){
+//                return 5;
+//            }else{
+//                return 1;
+//            }
+//        }else{
+//            if(board.getPlayerScore() > board.getComputerScore()){
+//                return -5;
+//            }else if(board.getPlayerScore() < board.getComputerScore()){
+//                return 5;
+//            }else{
+//                return 1;
+//            }
+//        }
+//    }
+//public int terminalValue(Board board) {
+//    board.update();
+//    int playerScore = board.getPlayerScore();
+//    int computerScore = board.getComputerScore();
+//
+//    // The heuristic is now the computer's score minus the player's score multiplied by a weight.
+//    // This teaches the AI that letting the player score is much worse than not scoring itself.
+//    int defensiveWeight = 2;
+//    int heuristicValue = computerScore - (playerScore * defensiveWeight);
+//
+//    if (full(board)) {
+//        if (playerWin(board)) {
+//            return -1000; // Use a large penalty for losing
+//        } else if (computerWin(board)) {
+//            return 1000;  // Use a large reward for winning
+//        } else {
+//            return heuristicValue; // Return the weighted score for a draw
+//        }
+//    } else {
+//        return heuristicValue; // Return the weighted score for non-terminal states
+//    }
+//}
+public int terminalValue(Board board) {
+    board.update();
+
+    // Check for absolute win/loss first.
+    if (full(board)) {
+        if (playerWin(board)) {
+            return -10000; // A large, absolute value for a definite loss
+        } else if (computerWin(board)) {
+            return 10000;  // A large, absolute value for a definite win
+        }
+    }
+
+    // --- Heuristic Calculation for non-terminal states ---
+
+    // 1. Base Score: Start with the defensively weighted score.
+    int defensiveWeight = 2;
+    int baseHeuristic = board.getComputerScore() - (board.getPlayerScore() * defensiveWeight);
+
+    // 2. Threat Analysis: Scan for specific dangerous patterns and apply penalties.
+    int threatPenalty = 0;
+    int threatValue = 100; // A large penalty for leaving a threat open.
+
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            // --- Check for Horizontal Threats from the Player ('o') ---
+
+            // Threat: o o . (Open-ended pair)
+            if (j + 2 < size && board.array[i][j] == PLAYER && board.array[i][j + 1] == PLAYER && board.array[i][j + 2] == EMPTY) {
+                threatPenalty += 50;
             }
-        }else{
-            if(board.getPlayerScore()+4 > board.getComputerScore()-4){
-                return -5;
-            }else if(board.getPlayerScore()+4 < board.getComputerScore()-4){
-                return 5;
-            }else{
-                return -1;
+            // Threat: . o o (Open-ended pair)
+            if (j > 0 && j + 1 < size && board.array[i][j - 1] == EMPTY && board.array[i][j] == PLAYER && board.array[i][j + 1] == PLAYER) {
+                threatPenalty += 50;
+            }
+            // Threat: o . o (Split pair, very dangerous)
+            if (j + 2 < size && board.array[i][j] == PLAYER && board.array[i][j + 1] == EMPTY && board.array[i][j + 2] == PLAYER) {
+                threatPenalty += 100;
+            }
+
+            // --- Check for Vertical Threats from the Player ('o') ---
+
+            // Threat: o o . (stacked)
+            if (i + 2 < size && board.array[i][j] == PLAYER && board.array[i + 1][j] == PLAYER && board.array[i + 2][j] == EMPTY) {
+                threatPenalty += 50;
+            }
+            // Threat: . o o (stacked)
+            if (i > 0 && i + 1 < size && board.array[i - 1][j] == EMPTY && board.array[i][j] == PLAYER && board.array[i + 1][j] == PLAYER) {
+                threatPenalty += 50;
+            }
+            // Threat: o . o (stacked)
+            if (i + 2 < size && board.array[i][j] == PLAYER && board.array[i + 1][j] == EMPTY && board.array[i + 2][j] == PLAYER) {
+                threatPenalty += 100;
             }
         }
     }
 
+    // 3. Final Heuristic: The base score minus any penalties for threats.
+    return baseHeuristic - threatPenalty;
+}
 
     private boolean draw(Board board) {
         return board.getPlayerScore() == board.getComputerScore();
