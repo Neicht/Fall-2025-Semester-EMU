@@ -3,7 +3,7 @@
   <component name="Black">
     <option name="sdkName" value="Python 3.13 (RemoteDevelopment)" />
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_25" default="true" project-jdk-name="java" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_25" default="true">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>
