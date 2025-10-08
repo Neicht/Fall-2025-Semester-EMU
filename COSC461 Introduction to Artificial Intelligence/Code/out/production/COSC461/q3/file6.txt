@@ -1,6 +1,0 @@
-
-no input file
-
-use board size 6x6
-
-  
