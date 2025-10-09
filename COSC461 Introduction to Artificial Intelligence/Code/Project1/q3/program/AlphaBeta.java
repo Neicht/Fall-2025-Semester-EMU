@@ -1,6 +1,9 @@
 package Project1.q3.program;
 
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.Scanner;
 
@@ -15,6 +18,8 @@ public class AlphaBeta {
     private int MIN = 0;                     //min level
     private int MAX = 1;                     //max level
     private final int LIMIT = 8;
+    private static final String OUTPUT_FILE_PATH = "/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/Project1/q3/output/output";
+
 
     //depth limit
 
@@ -59,7 +64,25 @@ public class AlphaBeta {
     public AlphaBeta(int size) {
         this.size = size;
         this.board = new Board(size);              //create game board
-                               //set board size
+        //set board size
+    }
+
+    private void printAndWrite(String text) {
+        System.out.print(text);
+        try (PrintWriter out = new PrintWriter(new FileWriter(OUTPUT_FILE_PATH, true))) {
+            out.print(text);
+        } catch (IOException e) {
+            System.err.println("Error writing to file: " + e.getMessage());
+        }
+    }
+
+    private void printlnAndWrite(String text) {
+        System.out.println(text);
+        try (PrintWriter out = new PrintWriter(new FileWriter(OUTPUT_FILE_PATH, true))) {
+            out.println(text);
+        } catch (IOException e) {
+            System.err.println("Error writing to file: " + e.getMessage());
+        }
     }
 
 
@@ -70,13 +93,13 @@ public class AlphaBeta {
             {
                 if (full(board)) {
                     if (playerWin(board)) {
-                        System.out.print("Player wins ");
+                        printAndWrite("Player wins ");
                     } else if (computerWin(board)) {
-                        System.out.print("Computer wins ");
+                        printAndWrite("Computer wins ");
                     } else {
-                        System.out.print("Draw: ");
+                        printAndWrite("Draw: ");
                     }
-                    System.out.print("\nPLAYER: " + board.playerScore + " \nCOMPUTER: " + board.computerScore + "\n");
+                    printAndWrite("\nPLAYER: " + board.playerScore + " \nCOMPUTER: " + board.computerScore + "\n");
                     break;
                 }
                 board = playerMove(board);             //player makes a move
@@ -90,16 +113,18 @@ public class AlphaBeta {
     //Method lets the player make a move
     private Board playerMove(Board board) {
         while (true) {
-            System.out.print("Player move: ");         //prompt player
+            printAndWrite("Player move: ");         //prompt player
 
             Scanner scanner = new Scanner(System.in);  //read player's move
             int i = scanner.nextInt();
             int j = scanner.nextInt();
+
             if (i < 0 || i >= size || j < 0 || j >= size || board.array[i][j] != EMPTY) {
-                System.out.println("Invalid move");
+                printlnAndWrite("Invalid move");
             } else {
                 board.array[i][j] = PLAYER;                //place player symbol
                 board.update();
+                printlnAndWrite(i + " " + j);
                 displayBoard(board);                       //diplay board
                 break;
             }
@@ -126,7 +151,7 @@ public class AlphaBeta {
         }
         Board result = children.get(maxIndex);     //choose the child as next move
 
-        System.out.println("Computer move:");
+        printlnAndWrite("Computer move:");
 
         result.update();
         displayBoard(result);                       //diplay board
@@ -137,21 +162,21 @@ public class AlphaBeta {
 
     private void displayBoard(Board result) {
         // Print the column headers first, indented to align with the rows
-        System.out.print("    ");
+        printAndWrite("    ");
         for (int j = 0; j < size; j++) {
-            System.out.print(j + "   ");
+            printAndWrite(j + "   ");
         }
-        System.out.println();
+        printlnAndWrite("");
 
         // Print each row with its header and cell contents
         for (int i = 0; i < size; i++) {
-            System.out.print(i + " |"); // Print the row header (e.g., "0|")
+            printAndWrite(i + " |"); // Print the row header (e.g., "0|")
             for (int j = 0; j < size; j++) {
-                System.out.print(" " + result.array[i][j] + " |"); // Print the cell content and separator
+                printAndWrite(" " + result.array[i][j] + " |"); // Print the cell content and separator
             }
-            System.out.println(); // Move to the next line after the row is complete
+            printlnAndWrite(""); // Move to the next line after the row is complete
         }
-        System.out.print("Score\nPlayer: " + result.playerScore + "\nComputer: " + result.computerScore + "\n------------------\n");
+        printAndWrite("Score\nPlayer: " + result.playerScore + "\nComputer: " + result.computerScore + "\n------------------\n");
     }
 
     //Method computes minmax value of a board
@@ -205,7 +230,7 @@ public class AlphaBeta {
         }
     }
 
-//    public int terminalValue(Board board) {
+    //    public int terminalValue(Board board) {
 //        board.update();
 //        if(full(board)){
 //            if(playerWin(board)){
@@ -247,65 +272,65 @@ public class AlphaBeta {
 //        return heuristicValue; // Return the weighted score for non-terminal states
 //    }
 //}
-public int terminalValue(Board board) {
-    board.update();
+    public int terminalValue(Board board) {
+        board.update();
 
-    // Check for absolute win/loss first.
-    if (full(board)) {
-        if (playerWin(board)) {
-            return -10000; // A large, absolute value for a definite loss
-        } else if (computerWin(board)) {
-            return 10000;  // A large, absolute value for a definite win
-        }
-    }
-
-    // --- Heuristic Calculation for non-terminal states ---
-
-    // 1. Base Score: Start with the defensively weighted score.
-    int defensiveWeight = 2;
-    int baseHeuristic = board.getComputerScore() - (board.getPlayerScore() * defensiveWeight);
-
-    // 2. Threat Analysis: Scan for specific dangerous patterns and apply penalties.
-    int threatPenalty = 0;
-    int threatValue = 100; // A large penalty for leaving a threat open.
-
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
-            // --- Check for Horizontal Threats from the Player ('o') ---
-
-            // Threat: o o . (Open-ended pair)
-            if (j + 2 < size && board.array[i][j] == PLAYER && board.array[i][j + 1] == PLAYER && board.array[i][j + 2] == EMPTY) {
-                threatPenalty += 50;
-            }
-            // Threat: . o o (Open-ended pair)
-            if (j > 0 && j + 1 < size && board.array[i][j - 1] == EMPTY && board.array[i][j] == PLAYER && board.array[i][j + 1] == PLAYER) {
-                threatPenalty += 50;
-            }
-            // Threat: o . o (Split pair, very dangerous)
-            if (j + 2 < size && board.array[i][j] == PLAYER && board.array[i][j + 1] == EMPTY && board.array[i][j + 2] == PLAYER) {
-                threatPenalty += 100;
-            }
-
-            // --- Check for Vertical Threats from the Player ('o') ---
-
-            // Threat: o o . (stacked)
-            if (i + 2 < size && board.array[i][j] == PLAYER && board.array[i + 1][j] == PLAYER && board.array[i + 2][j] == EMPTY) {
-                threatPenalty += 50;
-            }
-            // Threat: . o o (stacked)
-            if (i > 0 && i + 1 < size && board.array[i - 1][j] == EMPTY && board.array[i][j] == PLAYER && board.array[i + 1][j] == PLAYER) {
-                threatPenalty += 50;
-            }
-            // Threat: o . o (stacked)
-            if (i + 2 < size && board.array[i][j] == PLAYER && board.array[i + 1][j] == EMPTY && board.array[i + 2][j] == PLAYER) {
-                threatPenalty += 100;
+        // Check for absolute win/loss first.
+        if (full(board)) {
+            if (playerWin(board)) {
+                return -10000; // A large, absolute value for a definite loss
+            } else if (computerWin(board)) {
+                return 10000;  // A large, absolute value for a definite win
             }
         }
-    }
 
-    // 3. Final Heuristic: The base score minus any penalties for threats.
-    return baseHeuristic - threatPenalty;
-}
+        // --- Heuristic Calculation for non-terminal states ---
+
+        // 1. Base Score: Start with the defensively weighted score.
+        int defensiveWeight = 2;
+        int baseHeuristic = board.getComputerScore() - (board.getPlayerScore() * defensiveWeight);
+
+        // 2. Threat Analysis: Scan for specific dangerous patterns and apply penalties.
+        int threatPenalty = 0;
+        int threatValue = 100; // A large penalty for leaving a threat open.
+
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                // --- Check for Horizontal Threats from the Player ('o') ---
+
+                // Threat: o o . (Open-ended pair)
+                if (j + 2 < size && board.array[i][j] == PLAYER && board.array[i][j + 1] == PLAYER && board.array[i][j + 2] == EMPTY) {
+                    threatPenalty += 50;
+                }
+                // Threat: . o o (Open-ended pair)
+                if (j > 0 && j + 1 < size && board.array[i][j - 1] == EMPTY && board.array[i][j] == PLAYER && board.array[i][j + 1] == PLAYER) {
+                    threatPenalty += 50;
+                }
+                // Threat: o . o (Split pair, very dangerous)
+                if (j + 2 < size && board.array[i][j] == PLAYER && board.array[i][j + 1] == EMPTY && board.array[i][j + 2] == PLAYER) {
+                    threatPenalty += 100;
+                }
+
+                // --- Check for Vertical Threats from the Player ('o') ---
+
+                // Threat: o o . (stacked)
+                if (i + 2 < size && board.array[i][j] == PLAYER && board.array[i + 1][j] == PLAYER && board.array[i + 2][j] == EMPTY) {
+                    threatPenalty += 50;
+                }
+                // Threat: . o o (stacked)
+                if (i > 0 && i + 1 < size && board.array[i - 1][j] == EMPTY && board.array[i][j] == PLAYER && board.array[i + 1][j] == PLAYER) {
+                    threatPenalty += 50;
+                }
+                // Threat: o . o (stacked)
+                if (i + 2 < size && board.array[i][j] == PLAYER && board.array[i + 1][j] == EMPTY && board.array[i + 2][j] == PLAYER) {
+                    threatPenalty += 100;
+                }
+            }
+        }
+
+        // 3. Final Heuristic: The base score minus any penalties for threats.
+        return baseHeuristic - threatPenalty;
+    }
 
     private boolean draw(Board board) {
         return board.getPlayerScore() == board.getComputerScore();
@@ -329,7 +354,7 @@ public int terminalValue(Board board) {
         return board.getPlayerScore() < board.getComputerScore();
     }
 
-        //Method generates children of board using a symbol
+    //Method generates children of board using a symbol
     private LinkedList<Board> generate(Board board, char symbol) {
         LinkedList<Board> children = new LinkedList<Board>();
         //empty list of children
@@ -344,7 +369,6 @@ public int terminalValue(Board board) {
         }
         return children;                           //return list of children
     }
-
 
 
     private Board copy(Board board) {

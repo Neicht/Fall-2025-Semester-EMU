@@ -50,7 +50,7 @@ public class NearestNeighborTester
     //Method converts training file to numerical format
     private static void convertTrainingFile(String inputFile, String outputFile) throws IOException
     {
-        //input and output files
+        //input and output9 files
         Scanner inFile = new Scanner(new File(inputFile));
         PrintWriter outFile = new PrintWriter(new FileWriter(outputFile));
 
@@ -87,7 +87,7 @@ public class NearestNeighborTester
     //Method converts validation file to numerical format
     private static void convertValidationFile(String inputFile, String outputFile) throws IOException
     {
-        //input and output files
+        //input and output9 files
         Scanner inFile = new Scanner(new File(inputFile));
         PrintWriter outFile = new PrintWriter(new FileWriter(outputFile));
 
@@ -122,7 +122,7 @@ public class NearestNeighborTester
     //Method converts test file to numerical format
     private static void convertTestFile(String inputFile, String outputFile) throws IOException
     {
-        //input and output files
+        //input and output9 files
         Scanner inFile = new Scanner(new File(inputFile));
         PrintWriter outFile = new PrintWriter(new FileWriter(outputFile));
 
@@ -153,7 +153,7 @@ public class NearestNeighborTester
     //Method converts classified file to text format
     private static void convertClassFile(String inputFile, String outputFile) throws IOException
     {
-        //input and output files
+        //input and output9 files
         Scanner inFile = new Scanner(new File(inputFile));
         PrintWriter outFile = new PrintWriter(new FileWriter(outputFile));
 

@@ -2,6 +2,7 @@ package Project1.q4.program;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.Scanner;
 
@@ -13,14 +14,15 @@ public class SudokuTester {
 
         String[][] board = null;
         try {
-           // String path = "/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/Project1/q4/file7.txt";
-            String path = "/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/Project1/q4/file8.txt";
-            File inputFile = new File(path);
-            Scanner scanner = new Scanner(inputFile);
+            //String path = "/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/Project1/q4/file7.txt";
+            String path = "Project1/q4/file8.txt";
+            InputStream inputStream = SudokuTester.class.getClassLoader().getResourceAsStream(path);
+            assert inputStream != null;
+            Scanner scanner = new Scanner(inputStream);
             int n = scanner.nextInt();
             board = new String[n][n];
             for (int i = 0; i < n; i++) {
-                for( int j = 0; j < n; j++){
+                for (int j = 0; j < n; j++) {
                     board[i][j] = scanner.next();
                 }
             }
@@ -28,12 +30,22 @@ public class SudokuTester {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        String outputFilePath = "Project1/q4/output/output";
-        File outputFile = new File(outputFilePath);
+        //String outputFilePath = "/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/Project1/q4/output9/output9";
+        //String outputFilePath = "/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/Project1/q4/output/output16";
+        String outputFilePath = "/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/Project1/q4/output/output";
         PrintStream console = System.out;
-        PrintStream file = new PrintStream(outputFile);
+        PrintStream file = new PrintStream(outputFilePath);
         System.setOut(file);
         Sudoku s = new Sudoku(board);
         s.solve();
+        System.setOut(console);
+        try {
+            Scanner scanner = new Scanner(new File(outputFilePath));
+            while (scanner.hasNextLine()) {
+                System.out.println(scanner.nextLine());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
