@@ -3,7 +3,7 @@
 var hata = function() {
 
 var nRows = 50;
-var nColumns = 50;
+var nColumns = 100;
 
 
 // data for radial hat function: sin(Pi*r)/(Pi*r)

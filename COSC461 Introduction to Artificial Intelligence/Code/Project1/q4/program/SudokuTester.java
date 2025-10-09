@@ -1,12 +1,14 @@
 package Project1.q4.program;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.util.Scanner;
 
 //Tester program for sudoku solver
 public class SudokuTester {
     //Main method for testing
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
         //specifc sudoku puzzle
 
         String[][] board = null;
@@ -26,7 +28,11 @@ public class SudokuTester {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
+        String outputFilePath = "Project1/q4/output/output";
+        File outputFile = new File(outputFilePath);
+        PrintStream console = System.out;
+        PrintStream file = new PrintStream(outputFile);
+        System.setOut(file);
         Sudoku s = new Sudoku(board);
         s.solve();
     }
