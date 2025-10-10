@@ -60,7 +60,6 @@ public class AlphaBeta {
     private int size;                              //size of board
 
 
-    //Constructor of q3.program.AlphaBeta class
     public AlphaBeta(int size) {
         this.size = size;
         this.board = new Board(size);              //create game board
@@ -170,7 +169,7 @@ public class AlphaBeta {
 
         // Print each row with its header and cell contents
         for (int i = 0; i < size; i++) {
-            printAndWrite(i + " |"); // Print the row header (e.g., "0|")
+            printAndWrite(i + " |"); // Print the row header (e.g., "0 |")
             for (int j = 0; j < size; j++) {
                 printAndWrite(" " + result.array[i][j] + " |"); // Print the cell content and separator
             }
@@ -230,48 +229,6 @@ public class AlphaBeta {
         }
     }
 
-    //    public int terminalValue(Board board) {
-//        board.update();
-//        if(full(board)){
-//            if(playerWin(board)){
-//                return -5;
-//            }else if(computerWin(board)){
-//                return 5;
-//            }else{
-//                return 1;
-//            }
-//        }else{
-//            if(board.getPlayerScore() > board.getComputerScore()){
-//                return -5;
-//            }else if(board.getPlayerScore() < board.getComputerScore()){
-//                return 5;
-//            }else{
-//                return 1;
-//            }
-//        }
-//    }
-//public int terminalValue(Board board) {
-//    board.update();
-//    int playerScore = board.getPlayerScore();
-//    int computerScore = board.getComputerScore();
-//
-//    // The heuristic is now the computer's score minus the player's score multiplied by a weight.
-//    // This teaches the AI that letting the player score is much worse than not scoring itself.
-//    int defensiveWeight = 2;
-//    int heuristicValue = computerScore - (playerScore * defensiveWeight);
-//
-//    if (full(board)) {
-//        if (playerWin(board)) {
-//            return -1000; // Use a large penalty for losing
-//        } else if (computerWin(board)) {
-//            return 1000;  // Use a large reward for winning
-//        } else {
-//            return heuristicValue; // Return the weighted score for a draw
-//        }
-//    } else {
-//        return heuristicValue; // Return the weighted score for non-terminal states
-//    }
-//}
     public int terminalValue(Board board) {
         board.update();
 
