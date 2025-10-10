@@ -1,0 +1,435 @@
+Player move: 3 3
+    0   1   2   3   4   5   
+0 |   |   |   |   |   |   |
+1 |   |   |   |   |   |   |
+2 |   |   |   |   |   |   |
+3 |   |   |   | o |   |   |
+4 |   |   |   |   |   |   |
+5 |   |   |   |   |   |   |
+Score
+Player: 0
+Computer: 0
+------------------
+Computer move:
+    0   1   2   3   4   5   
+0 |   |   |   |   |   |   |
+1 |   |   |   |   |   |   |
+2 |   |   |   | x |   |   |
+3 |   |   |   | o |   |   |
+4 |   |   |   |   |   |   |
+5 |   |   |   |   |   |   |
+Score
+Player: 0
+Computer: 0
+------------------
+Player move: 2 2
+    0   1   2   3   4   5   
+0 |   |   |   |   |   |   |
+1 |   |   |   |   |   |   |
+2 |   |   | o | x |   |   |
+3 |   |   |   | o |   |   |
+4 |   |   |   |   |   |   |
+5 |   |   |   |   |   |   |
+Score
+Player: 0
+Computer: 0
+------------------
+Computer move:
+    0   1   2   3   4   5   
+0 |   |   |   |   |   |   |
+1 |   |   |   |   |   |   |
+2 |   |   | o | x |   |   |
+3 |   |   | x | o |   |   |
+4 |   |   |   |   |   |   |
+5 |   |   |   |   |   |   |
+Score
+Player: 0
+Computer: 0
+------------------
+Player move: 1 1
+    0   1   2   3   4   5   
+0 |   |   |   |   |   |   |
+1 |   | o |   |   |   |   |
+2 |   |   | o | x |   |   |
+3 |   |   | x | o |   |   |
+4 |   |   |   |   |   |   |
+5 |   |   |   |   |   |   |
+Score
+Player: 0
+Computer: 0
+------------------
+Computer move:
+    0   1   2   3   4   5   
+0 |   |   |   |   |   |   |
+1 |   | o | x |   |   |   |
+2 |   |   | o | x |   |   |
+3 |   |   | x | o |   |   |
+4 |   |   |   |   |   |   |
+5 |   |   |   |   |   |   |
+Score
+Player: 0
+Computer: 0
+------------------
+Player move: 2 1
+    0   1   2   3   4   5   
+0 |   |   |   |   |   |   |
+1 |   | o | x |   |   |   |
+2 |   | o | o | x |   |   |
+3 |   |   | x | o |   |   |
+4 |   |   |   |   |   |   |
+5 |   |   |   |   |   |   |
+Score
+Player: 4
+Computer: 0
+------------------
+Computer move:
+    0   1   2   3   4   5   
+0 |   |   |   |   |   |   |
+1 |   | o | x |   |   |   |
+2 |   | o | o | x |   |   |
+3 |   | x | x | o |   |   |
+4 |   |   |   |   |   |   |
+5 |   |   |   |   |   |   |
+Score
+Player: 4
+Computer: 2
+------------------
+Player move: 2 0
+    0   1   2   3   4   5   
+0 |   |   |   |   |   |   |
+1 |   | o | x |   |   |   |
+2 | o | o | o | x |   |   |
+3 |   | x | x | o |   |   |
+4 |   |   |   |   |   |   |
+5 |   |   |   |   |   |   |
+Score
+Player: 9
+Computer: 2
+------------------
+Computer move:
+    0   1   2   3   4   5   
+0 |   | x |   |   |   |   |
+1 |   | o | x |   |   |   |
+2 | o | o | o | x |   |   |
+3 |   | x | x | o |   |   |
+4 |   |   |   |   |   |   |
+5 |   |   |   |   |   |   |
+Score
+Player: 9
+Computer: 2
+------------------
+Player move: 3 0
+    0   1   2   3   4   5   
+0 |   | x |   |   |   |   |
+1 |   | o | x |   |   |   |
+2 | o | o | o | x |   |   |
+3 | o | x | x | o |   |   |
+4 |   |   |   |   |   |   |
+5 |   |   |   |   |   |   |
+Score
+Player: 11
+Computer: 2
+------------------
+Computer move:
+    0   1   2   3   4   5   
+0 |   | x |   |   |   |   |
+1 | x | o | x |   |   |   |
+2 | o | o | o | x |   |   |
+3 | o | x | x | o |   |   |
+4 |   |   |   |   |   |   |
+5 |   |   |   |   |   |   |
+Score
+Player: 11
+Computer: 2
+------------------
+Player move: 4 1
+    0   1   2   3   4   5   
+0 |   | x |   |   |   |   |
+1 | x | o | x |   |   |   |
+2 | o | o | o | x |   |   |
+3 | o | x | x | o |   |   |
+4 |   | o |   |   |   |   |
+5 |   |   |   |   |   |   |
+Score
+Player: 11
+Computer: 2
+------------------
+Computer move:
+    0   1   2   3   4   5   
+0 |   | x |   |   |   |   |
+1 | x | o | x |   |   |   |
+2 | o | o | o | x |   |   |
+3 | o | x | x | o | x |   |
+4 |   | o |   |   |   |   |
+5 |   |   |   |   |   |   |
+Score
+Player: 11
+Computer: 2
+------------------
+Player move: 4 0
+    0   1   2   3   4   5   
+0 |   | x |   |   |   |   |
+1 | x | o | x |   |   |   |
+2 | o | o | o | x |   |   |
+3 | o | x | x | o | x |   |
+4 | o | o |   |   |   |   |
+5 |   |   |   |   |   |   |
+Score
+Player: 18
+Computer: 2
+------------------
+Computer move:
+    0   1   2   3   4   5   
+0 |   | x |   |   |   |   |
+1 | x | o | x |   |   |   |
+2 | o | o | o | x |   |   |
+3 | o | x | x | o | x |   |
+4 | o | o | x |   |   |   |
+5 |   |   |   |   |   |   |
+Score
+Player: 18
+Computer: 4
+------------------
+Player move: 5 0
+    0   1   2   3   4   5   
+0 |   | x |   |   |   |   |
+1 | x | o | x |   |   |   |
+2 | o | o | o | x |   |   |
+3 | o | x | x | o | x |   |
+4 | o | o | x |   |   |   |
+5 | o |   |   |   |   |   |
+Score
+Player: 23
+Computer: 4
+------------------
+Computer move:
+    0   1   2   3   4   5   
+0 |   | x |   |   |   |   |
+1 | x | o | x |   |   |   |
+2 | o | o | o | x |   |   |
+3 | o | x | x | o | x |   |
+4 | o | o | x |   |   |   |
+5 | o |   | x |   |   |   |
+Score
+Player: 23
+Computer: 9
+------------------
+Player move: 5 3
+    0   1   2   3   4   5   
+0 |   | x |   |   |   |   |
+1 | x | o | x |   |   |   |
+2 | o | o | o | x |   |   |
+3 | o | x | x | o | x |   |
+4 | o | o | x |   |   |   |
+5 | o |   | x | o |   |   |
+Score
+Player: 23
+Computer: 9
+------------------
+Computer move:
+    0   1   2   3   4   5   
+0 |   | x |   |   |   |   |
+1 | x | o | x |   |   |   |
+2 | o | o | o | x |   |   |
+3 | o | x | x | o | x |   |
+4 | o | o | x | x |   |   |
+5 | o |   | x | o |   |   |
+Score
+Player: 23
+Computer: 11
+------------------
+Player move: 4 4
+    0   1   2   3   4   5   
+0 |   | x |   |   |   |   |
+1 | x | o | x |   |   |   |
+2 | o | o | o | x |   |   |
+3 | o | x | x | o | x |   |
+4 | o | o | x | x | o |   |
+5 | o |   | x | o |   |   |
+Score
+Player: 23
+Computer: 11
+------------------
+Computer move:
+    0   1   2   3   4   5   
+0 |   | x |   |   |   |   |
+1 | x | o | x |   |   |   |
+2 | o | o | o | x | x |   |
+3 | o | x | x | o | x |   |
+4 | o | o | x | x | o |   |
+5 | o |   | x | o |   |   |
+Score
+Player: 23
+Computer: 15
+------------------
+Player move: 1 4
+    0   1   2   3   4   5   
+0 |   | x |   |   |   |   |
+1 | x | o | x |   | o |   |
+2 | o | o | o | x | x |   |
+3 | o | x | x | o | x |   |
+4 | o | o | x | x | o |   |
+5 | o |   | x | o |   |   |
+Score
+Player: 23
+Computer: 15
+------------------
+Computer move:
+    0   1   2   3   4   5   
+0 |   | x |   |   |   |   |
+1 | x | o | x | x | o |   |
+2 | o | o | o | x | x |   |
+3 | o | x | x | o | x |   |
+4 | o | o | x | x | o |   |
+5 | o |   | x | o |   |   |
+Score
+Player: 23
+Computer: 19
+------------------
+Player move: 0 3
+    0   1   2   3   4   5   
+0 |   | x |   | o |   |   |
+1 | x | o | x | x | o |   |
+2 | o | o | o | x | x |   |
+3 | o | x | x | o | x |   |
+4 | o | o | x | x | o |   |
+5 | o |   | x | o |   |   |
+Score
+Player: 23
+Computer: 19
+------------------
+Computer move:
+    0   1   2   3   4   5   
+0 |   | x |   | o |   |   |
+1 | x | o | x | x | o |   |
+2 | o | o | o | x | x |   |
+3 | o | x | x | o | x | x |
+4 | o | o | x | x | o |   |
+5 | o |   | x | o |   |   |
+Score
+Player: 23
+Computer: 21
+------------------
+Player move: 5 4
+    0   1   2   3   4   5   
+0 |   | x |   | o |   |   |
+1 | x | o | x | x | o |   |
+2 | o | o | o | x | x |   |
+3 | o | x | x | o | x | x |
+4 | o | o | x | x | o |   |
+5 | o |   | x | o | o |   |
+Score
+Player: 27
+Computer: 21
+------------------
+Computer move:
+    0   1   2   3   4   5   
+0 |   | x |   | o | x |   |
+1 | x | o | x | x | o |   |
+2 | o | o | o | x | x |   |
+3 | o | x | x | o | x | x |
+4 | o | o | x | x | o |   |
+5 | o |   | x | o | o |   |
+Score
+Player: 27
+Computer: 21
+------------------
+Player move: 5 5
+    0   1   2   3   4   5   
+0 |   | x |   | o | x |   |
+1 | x | o | x | x | o |   |
+2 | o | o | o | x | x |   |
+3 | o | x | x | o | x | x |
+4 | o | o | x | x | o |   |
+5 | o |   | x | o | o | o |
+Score
+Player: 32
+Computer: 21
+------------------
+Computer move:
+    0   1   2   3   4   5   
+0 |   | x |   | o | x |   |
+1 | x | o | x | x | o |   |
+2 | o | o | o | x | x | x |
+3 | o | x | x | o | x | x |
+4 | o | o | x | x | o |   |
+5 | o |   | x | o | o | o |
+Score
+Player: 32
+Computer: 28
+------------------
+Player move: 1 5
+    0   1   2   3   4   5   
+0 |   | x |   | o | x |   |
+1 | x | o | x | x | o | o |
+2 | o | o | o | x | x | x |
+3 | o | x | x | o | x | x |
+4 | o | o | x | x | o |   |
+5 | o |   | x | o | o | o |
+Score
+Player: 34
+Computer: 28
+------------------
+Computer move:
+    0   1   2   3   4   5   
+0 |   | x |   | o | x |   |
+1 | x | o | x | x | o | o |
+2 | o | o | o | x | x | x |
+3 | o | x | x | o | x | x |
+4 | o | o | x | x | o | x |
+5 | o |   | x | o | o | o |
+Score
+Player: 34
+Computer: 33
+------------------
+Player move: 5 1
+    0   1   2   3   4   5   
+0 |   | x |   | o | x |   |
+1 | x | o | x | x | o | o |
+2 | o | o | o | x | x | x |
+3 | o | x | x | o | x | x |
+4 | o | o | x | x | o | x |
+5 | o | o | x | o | o | o |
+Score
+Player: 38
+Computer: 33
+------------------
+Computer move:
+    0   1   2   3   4   5   
+0 |   | x | x | o | x |   |
+1 | x | o | x | x | o | o |
+2 | o | o | o | x | x | x |
+3 | o | x | x | o | x | x |
+4 | o | o | x | x | o | x |
+5 | o | o | x | o | o | o |
+Score
+Player: 38
+Computer: 37
+------------------
+Player move: 0 0
+    0   1   2   3   4   5   
+0 | o | x | x | o | x |   |
+1 | x | o | x | x | o | o |
+2 | o | o | o | x | x | x |
+3 | o | x | x | o | x | x |
+4 | o | o | x | x | o | x |
+5 | o | o | x | o | o | o |
+Score
+Player: 38
+Computer: 37
+------------------
+Computer move:
+    0   1   2   3   4   5   
+0 | o | x | x | o | x | x |
+1 | x | o | x | x | o | o |
+2 | o | o | o | x | x | x |
+3 | o | x | x | o | x | x |
+4 | o | o | x | x | o | x |
+5 | o | o | x | o | o | o |
+Score
+Player: 38
+Computer: 39
+------------------
+Computer wins 
+PLAYER: 38 
+COMPUTER: 39
