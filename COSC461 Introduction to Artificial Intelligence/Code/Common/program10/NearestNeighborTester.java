@@ -35,7 +35,7 @@ public class NearestNeighborTester
         //set nearest neighbors
         classifier.setParameters(NEIGHBORS);
 
-        //classify test data
+        //classify file4output data
         classifier.classifyData("testfile", "classifiedfile");
 
         //postprocess files
@@ -119,7 +119,7 @@ public class NearestNeighborTester
 
     /*************************************************************************/
 
-    //Method converts test file to numerical format
+    //Method converts file4output file to numerical format
     private static void convertTestFile(String inputFile, String outputFile) throws IOException
     {
         //input and output9 files

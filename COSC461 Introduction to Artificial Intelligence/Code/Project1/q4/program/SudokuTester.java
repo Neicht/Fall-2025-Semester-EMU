@@ -11,14 +11,18 @@ public class SudokuTester {
     //Main method for testing
     public static void main(String[] args) throws FileNotFoundException {
         //specifc sudoku puzzle
-
+        String path = "";
+        String outputFilePath = "";
         String[][] board = null;
         try {
             //String path = "/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/Project1/q4/file7.txt";
-            String path = "Project1/q4/file8.txt";
-            InputStream inputStream = SudokuTester.class.getClassLoader().getResourceAsStream(path);
-            assert inputStream != null;
-            Scanner scanner = new Scanner(inputStream);
+            Scanner inputScanner = new Scanner(System.in);
+            System.out.print("Enter absolute input file path: ");
+            path = inputScanner.nextLine();
+            System.out.print("Enter absolute output file path: ");
+            outputFilePath = inputScanner.nextLine();
+            inputScanner.close();
+            Scanner scanner = new Scanner(new File(path));
             int n = scanner.nextInt();
             board = new String[n][n];
             for (int i = 0; i < n; i++) {
@@ -32,15 +36,16 @@ public class SudokuTester {
         }
         //String outputFilePath = "/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/Project1/q4/output9/output9";
         //String outputFilePath = "/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/Project1/q4/output/output16";
-        String outputFilePath = "/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/Project1/q4/output/output";
+        //String outputFilePath = "/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/Project1/q4/output/output";
         PrintStream console = System.out;
-        PrintStream file = new PrintStream(outputFilePath);
+        File outputFile = new File(outputFilePath);
+        PrintStream file = new PrintStream(outputFile);
         System.setOut(file);
         Sudoku s = new Sudoku(board);
         s.solve();
         System.setOut(console);
         try {
-            Scanner scanner = new Scanner(new File(outputFilePath));
+            Scanner scanner = new Scanner(outputFile);
             while (scanner.hasNextLine()) {
                 System.out.println(scanner.nextLine());
             }

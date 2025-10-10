@@ -95,7 +95,7 @@ public class NearestNeighbor
 
     /*************************************************************************/
 
-    //Method reads records from test file, determines their classes, 
+    //Method reads records from file4output file, determines their classes,
     //and writes classes to classified file
     public void classifyData(String testFile, String classifiedFile) throws IOException
     {

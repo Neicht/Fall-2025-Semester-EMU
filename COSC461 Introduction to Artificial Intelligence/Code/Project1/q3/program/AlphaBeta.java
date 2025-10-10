@@ -17,7 +17,7 @@ public class AlphaBeta {
     private final char PLAYER = 'o';               //player
     private int MIN = 0;                     //min level
     private int MAX = 1;                     //max level
-    private final int LIMIT = 8;
+    private final int LIMIT = 6;
     private static final String OUTPUT_FILE_PATH = "/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/Project1/q3/output/output";
 
 

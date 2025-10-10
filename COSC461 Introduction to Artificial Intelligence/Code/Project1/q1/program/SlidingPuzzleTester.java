@@ -32,8 +32,8 @@ public class SlidingPuzzleTester {
                     System.out.println("I/O files not specified in args.");
                     System.out.print("Enter absolute input file path: ");
                     inputFilePath = scanner.nextLine();
-                    System.out.print("Enter output file name: ");
-                    outputFilePath = "Project1/q1/output/" + scanner.nextLine();
+                    System.out.print("Enter absolute output file path: ");
+                    outputFilePath = scanner.nextLine();
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -71,10 +71,10 @@ public class SlidingPuzzleTester {
 
 
         SlidingAstar s = new SlidingAstar(initial, goal, size, evaluationFunction, heuristicFunction);
-        float clockStart = System.nanoTime();
+        double clockStart = System.nanoTime();
         s.solve();
-        float clockEnd = System.nanoTime();
-        float finalRunTime = (float) (clockEnd - clockStart);
+        double clockEnd = System.nanoTime();
+        double finalRunTime =  (clockEnd - clockStart);
         System.out.printf("\nRuntime: %.3fms",(finalRunTime / 1000000));
 
         System.setOut(console);

@@ -32,14 +32,13 @@ public class SlidingPuzzleTester {
                     System.out.println("I/O files not specified in args.");
                     System.out.print("Enter absolute input file path: ");
                     inputFilePath = scanner.nextLine();
-                    System.out.print("Enter output file name: ");
-                    outputFilePath = "Project1/q2/output/" + scanner.nextLine();
+                    System.out.print("Enter absolute output file path: ");
+                    outputFilePath = scanner.nextLine();
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
-
         File inputFile = new File(inputFilePath);
         try {
             Scanner scanner = new Scanner(inputFile);
@@ -57,15 +56,13 @@ public class SlidingPuzzleTester {
                     charList.add(j);
                 }
             }
-            // The custom order is defined in this string
             String customOrder = "123456789RG";
-            // The lambda function creates the Comparator
             Comparator<Character> customComparator = Comparator.comparingInt(customOrder::indexOf);
             charList.sort(customComparator);
-            goal = new char[size][size]; // Initialize the goal board
+            goal = new char[size][size];
             for (int i = 0; i < charList.size(); i++) {
-                int row = i / size; // Integer division determines the row
-                int col = i % size; // Modulo operator determines the column
+                int row = i / size;
+                int col = i % size;
                 goal[row][col] = charList.get(i);
             }
         } catch (Exception e) {
