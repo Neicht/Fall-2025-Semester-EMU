@@ -1,16 +1,22 @@
-package Project2.q1.program;
+package Project2.q1.old;
 
-import java.io.*;
-import java.util.*;
-import java.util.function.Function;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Scanner;
 
+/**
+ * The type Nearest neighbor.
+ */
 //Nearest neighbor classifier
 public class NearestNeighbor {
     /*************************************************************************/
 
     //Record class (inner class)
     private class Record {
-        private double[] attributes;         //attributes of record
+        private double[] attributes;         //attributes of record      
         private int className;               //class of record
 
         //Constructor of Record
@@ -27,12 +33,11 @@ public class NearestNeighbor {
     private int numberClasses;               //number of classes
     private int numberNeighbors;             //number of nearest neighbors
     private ArrayList<Record> records;       //list of training records
-    private Record validationRecord;        //record for validation
 
-
-    /*************************************************************************/
-
-    //Constructor of NearestNeighbor
+    /**
+     * Instantiates a new Nearest neighbor.
+     */
+//Constructor of NearestNeighbor
     public NearestNeighbor() {
         //initial data is empty           
         numberRecords = 0;
@@ -42,15 +47,18 @@ public class NearestNeighbor {
         records = null;
     }
 
-    /*************************************************************************/
-
-    //Method loads data from training file
-    public void loadTrainingData(String trainingFile, int skip) throws IOException {
+    /**
+     * Load training data.
+     *
+     * @param trainingFile the training file
+     * @throws IOException the io exception
+     */
+//Method loads data from training file
+    public void loadTrainingData(String trainingFile) throws IOException {
         Scanner inFile = new Scanner(new File(trainingFile));
 
         //read number of records, attributes, classes
         numberRecords = inFile.nextInt();
-
         numberAttributes = inFile.nextInt();
         numberClasses = inFile.nextInt();
 
@@ -58,44 +66,68 @@ public class NearestNeighbor {
         records = new ArrayList<Record>();
 
         //for each record
-        for (int i = 0; i < numberRecords; i++) {
-            //create attribute array
-            double[] attributeArray = new double[numberAttributes];
+        for (int skip = 0; skip < numberRecords; skip++)
+            for (int i = 0; i < numberRecords; i++) {
+                if (i != skip) {
+                    //create attribute array
+                    double[] attributeArray = new double[numberAttributes];
 
-            //read attribute values
-            for (int j = 0; j < numberAttributes; j++)
-                attributeArray[j] = inFile.nextDouble();
+                    //read attribute values
+                    for (int j = 0; j < numberAttributes; j++)
+                        attributeArray[j] = inFile.nextDouble();
 
-            //read class name
-            int className = inFile.nextInt();
+                    //read class name
+                    int className = inFile.nextInt();
 
-            //create record
-            Record record = new Record(attributeArray, className);
+                    //create record
+                    Record record = new Record(attributeArray, className);
 
-            if (i == skip) {
-                validationRecord = record;
-            } else {
-                //add record to list of records
-                records.add(record);
+                    //add record to list of records
+                    records.add(record);
+                } else {
+                    //create attribute array
+                    FileWriter file = new FileWriter("/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/Project2/q1/testValidationFile.txt");
+                    file.write("1 ");
+                    //double[] attributeArray = new double[numberAttributes];
 
+                    //read attribute values
+                    for (int j = 0; j < numberAttributes; j++) {
+                        System.out.println(inFile.nextDouble());
+                        //attributeArray[j] = inFile.nextDouble();
+                        file.write(inFile.next() + " ");
+                    }
+
+
+                    //read class name
+                    String className = inFile.next();
+                    System.out.println(className);
+                    file.write(className + " ");
+
+
+                }
             }
-
-
-        }
 
         inFile.close();
     }
 
-    /*************************************************************************/
-
-    //Method sets number of nearest neighbors
+    /**
+     * Sets parameters.
+     *
+     * @param numberNeighbors the number neighbors
+     */
+//Method sets number of nearest neighbors
     public void setParameters(int numberNeighbors) {
         this.numberNeighbors = numberNeighbors;
     }
 
-    /*************************************************************************/
-
-    //Method reads records from test file, determines their classes, 
+    /**
+     * Classify data.
+     *
+     * @param testFile       the test file
+     * @param classifiedFile the classified file
+     * @throws IOException the io exception
+     */
+//Method reads records from file4output file, determines their classes,
     //and writes classes to classified file
     public void classifyData(String testFile, String classifiedFile) throws IOException {
         Scanner inFile = new Scanner(new File(testFile));
@@ -108,8 +140,7 @@ public class NearestNeighbor {
         outFile.println(numberRecords);
 
         //for each record
-
-        for (int i = 0; i < numberRecords; i++) {
+        for (int i = 0; i < numberRecords - 1; i++) {
 
             //create attribute array
             double[] attributeArray = new double[numberAttributes];
@@ -125,7 +156,6 @@ public class NearestNeighbor {
             outFile.println(className);
         }
 
-
         inFile.close();
         outFile.close();
     }
@@ -138,7 +168,7 @@ public class NearestNeighbor {
         int[] id = new int[numberRecords];
 
         //find distances between attributes and all records
-        for (int i = 0; i < numberRecords - 1; i++) {
+        for (int i = 0; i < numberRecords; i++) {
             distance[i] = distance(attributes, records.get(i).attributes);
             id[i] = i;
         }
@@ -208,34 +238,48 @@ public class NearestNeighbor {
         return distance;
     }
 
-    /*************************************************************************/
+    /**
+     * Validate.
+     *
+     * @param validationFile the validation file
+     * @throws IOException the io exception
+     */
+//Method validates classifier using validation file and displays error rate
+    public void validate(String validationFile) throws IOException {
+        Scanner inFile = new Scanner(new File(validationFile));
 
-    //Method validates classifier using validation file and displays error rate
-    public int validate() throws IOException {
-        int numErrors = 0;
-        //read attributes
-        double[] attributeArray = validationRecord.attributes;;
+        //read number of records
+        int numberRecords = inFile.nextInt();
 
-        //read actual class
-        int actualClass = validationRecord.className;
+        //initially zero errors
+        int numberErrors = 0;
 
-        //find class predicted by classifier
-        int predictedClass = classify(attributeArray);
+        //for each record
+        for (int i = 0; i < numberRecords; i++) {
+            double[] attributeArray = new double[numberAttributes];
 
+            //read attributes
+            for (int j = 0; j < numberAttributes; j++)
+                attributeArray[j] = inFile.nextDouble();
 
-        //errror if predicted and actual classes do not match
-        if (predictedClass != actualClass)
+            //read actual class
+            int actualClass = inFile.nextInt();
 
-            numErrors +=1;
+            //find class predicted by classifier
+            int predictedClass = classify(attributeArray);
 
+            //errror if predicted and actual classes do not match
+            if (predictedClass != actualClass)
+                numberErrors += 1;
+        }
 
         //find and print error rate
-        return numErrors;
+        double errorRate = 100.0 * numberErrors / numberRecords;
+        System.out.println("validation error: " + errorRate + "%");
 
-
+        inFile.close();
     }
 
     /************************************************************************/
-
 }
 
