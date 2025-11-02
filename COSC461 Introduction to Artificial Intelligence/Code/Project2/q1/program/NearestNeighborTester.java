@@ -1,48 +1,101 @@
 package Project2.q1.program;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.function.Function;
 
 //Program tests nearest neighbor classifier in a specific application
-public class NearestNeighborTester
-{
-    /*************************************************************************/
+public class NearestNeighborTester {
 
     //number of nearest neighbors
-    private static final int NEIGHBORS = 8;
+    private static final int NEIGHBORS = 6;
 
     //Main method
-    public static void main(String[] args) throws IOException
-    {
-        //preprocess files
-        String program = "COSC461 Introduction to Artificial Intelligence/Code/Project2/q1/program/Data/";
-        convertTrainingFile(program+"originaltrainingfile", program+"trainingfile");
-        convertTestFile(program+"originaltestfile", program+"testfile");
-        int numberRecords = getNumberRecords( program+"originaltrainingfile");
-        int errors = 0;
-        //construct nearest neighbor classifier
+    public static void main(String[] args) throws IOException {
 
-        for(int skip = 0; skip < numberRecords; skip++) {
+        //initialize scanner
+        Scanner scanner = new Scanner(System.in);
+
+        //absolute filepath
+        System.out.print("Enter absolute path to directory: ");
+        String directory_path = scanner.nextLine();
+        if(!new File(directory_path).exists() || !new File(directory_path).isDirectory()){
+            System.out.print("Does not exist or is not a directory");
+            System.exit(1);
+        }
+
+        directory_path = directory_path.endsWith("/") ? directory_path : directory_path + "/";
+        //gather training and test files
+        System.out.print("Enter training file name: ");
+        String trainingfile = scanner.nextLine();
+        if(!new File(directory_path + trainingfile).exists()){
+            System.out.print("File does not exist");
+            System.exit(1);
+        }
+        String trainingfile_converted = trainingfile + "_converted";
+        System.out.print("Enter test file name: ");
+        String testfile = scanner.nextLine();
+        if(!new File(directory_path + testfile).exists()){
+            System.out.print("File does not exist");
+            System.exit(1);
+        }
+        String testfile_converted = testfile + "_converted";
+        String testfile_classified_original = testfile + "_classified_original";
+        String testfile_classified = testfile + "_classified";
+
+        //close scanner
+
+
+        //preprocess files
+        convertTrainingFile(directory_path + trainingfile, directory_path + trainingfile_converted);
+        convertTestFile(directory_path + testfile, directory_path + testfile_converted);
+        int numberRecords = getNumberRecords(directory_path + trainingfile);
+        int errors = 0;
+        double startClock = System.nanoTime();
+        for (int skip = 0; skip < numberRecords; skip++) {
+            //construct nearest neighbor classifier
             NearestNeighbor classifier = new NearestNeighbor();
 
+            //set skip index
+            classifier.setSkipIndex(skip);
+
             //load training data
-            classifier.loadTrainingData(program + "trainingfile", skip);
+            classifier.loadTrainingData(directory_path + trainingfile_converted);
 
             //set nearest neighbors
             classifier.setParameters(NEIGHBORS);
 
+
             //classify test data
-            classifier.classifyData(program + "testfile", program + "originalclassifiedfile");
+            classifier.classifyData(directory_path + testfile_converted, directory_path + testfile_classified_original);
 
             //postprocess files
-            convertClassFile(program + "originalclassifiedfile", program + "classifiedfile");
+            convertClassFile(directory_path + testfile_classified_original, directory_path + testfile_classified);
 
             //validate classfier
             errors += classifier.validate();
         }
-       // System.out.println("Number of errors: " + (100.0 * errors / numberRecords) + "%");
-        System.out.println("Error rate: " + errors + "/" + numberRecords + " = " + (errors / (float)numberRecords) * 100 + "%");
+        double endClock = System.nanoTime();
+
+        // System.out.println("Number of errors: " + (100.0 * errors / numberRecords) + "%");
+        System.out.print("Error rate: " + errors + "/" + numberRecords + " = " + (errors / (float) numberRecords) * 100 + "%");
+        System.out.println(" (" + (endClock - startClock) / 1000000000.0 + " seconds)");
+
+        //clean
+        System.out.println("Clean? y/n");
+        if(scanner.nextLine().equalsIgnoreCase("y")){
+            System.out.print("Cleaning up");
+            Files.deleteIfExists(new File(directory_path + trainingfile_converted).toPath());
+            System.out.print(".");
+            Files.deleteIfExists(new File(directory_path + testfile_converted).toPath());
+            System.out.print(".");
+            Files.deleteIfExists(new File(directory_path + testfile_classified_original).toPath());
+            System.out.println(".");
+            Files.deleteIfExists(new File(directory_path + testfile_classified).toPath());
+            System.out.println("Done.");
+        }
+        scanner.close();
     }
 
 
@@ -77,21 +130,10 @@ public class NearestNeighborTester
 
     private static void writeTrainingfile_to_File(Scanner inFile, PrintWriter outFile, int numberRecords) throws IOException {
         for (int i = 0; i < numberRecords; i++) {
-
-            // a---X----b
-            // y = (x-a)/(b-a)
             writeAttributes_to_File(inFile, outFile, numberRecords);
-            outFile.print(applyFunction(inFile.next(), x -> switch (x) {
-                case "low" -> 1;
-                case "medium" -> 2;
-                case "high" -> 3;
-                case "undetermined" -> 4;
-                default -> throw new IllegalArgumentException("Invalid class: " + x);
-            }) + " ");
+            writeClasses_to_File(inFile, outFile, numberRecords);
             outFile.println();
         }
-
-
         inFile.close();
         outFile.close();
     }
@@ -108,7 +150,11 @@ public class NearestNeighborTester
     }
 
     /*************************************************************************/
+
+    //Method calculates normalization and writes values to a file
     private static void writeAttributes_to_File(Scanner inFile, PrintWriter outFile, int numberRecords) {
+        // a---X----b
+        // y = (x-a)/(b-a)
         outFile.print(applyFunction((double) inFile.nextInt(), x -> (x - 500.0) / (900.0 - 500.0)) + " ");
         outFile.print(applyFunction((double) inFile.nextInt(), x -> (x - 30.0) / (90.0 - 30.0)) + " ");
         outFile.print(applyFunction((double) inFile.nextInt(), x -> (x - 30.0) / (80.0 - 30.0)) + " ");
@@ -118,6 +164,15 @@ public class NearestNeighborTester
             case "married" -> 0.5;
             case "divorced" -> 1.0;
             default -> throw new IllegalArgumentException("Invalid attribute: " + x);
+        }) + " ");
+    }
+    private static void writeClasses_to_File(Scanner inFile, PrintWriter outFile, int numberRecords) {
+        outFile.print(applyFunction(inFile.next(), x -> switch (x) {
+            case "low" -> 1;
+            case "medium" -> 2;
+            case "high" -> 3;
+            case "undetermined" -> 4;
+            default -> throw new IllegalArgumentException("Invalid class: " + x);
         }) + " ");
     }
 
@@ -136,8 +191,6 @@ public class NearestNeighborTester
         outFile.println(numberRecords);
 
         writeTestfile_to_File(inFile, outFile, numberRecords);
-
-
     }
 
     /*************************************************************************/
@@ -173,6 +226,7 @@ public class NearestNeighborTester
 
     /****************************************************************************/
 
+    //lambda function to apply a function<t,r> to a value t using function.apply
     private static <T, R> R applyFunction(T value, Function<T, R> function) {
         return function.apply(value);
     }

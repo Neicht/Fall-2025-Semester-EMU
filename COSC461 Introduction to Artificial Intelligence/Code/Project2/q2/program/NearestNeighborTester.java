@@ -1,173 +1,223 @@
 package Project2.q2.program;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Scanner;
+import java.io.*;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.function.Function;
 
 //Program tests nearest neighbor classifier in a specific application
-public class NearestNeighborTester
-{
-    /*************************************************************************/
+public class NearestNeighborTester {
 
     //number of nearest neighbors
-    private static final int NEIGHBORS = 5;
+    private static final int NEIGHBORS = 6;
 
     //Main method
-    public static void main(String[] args) throws IOException
-    {
-        String testFile = "/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/Project2/q2/program/NearestNeighbor/originaltestfile";
-        String trainingFile = "/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/Project2/q2/program/NearestNeighbor/originaltrainingfile";
-        String validationFile = "/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/Project2/q2/program/NearestNeighbor/originalvalidationfile";
+    public static void main(String[] args) throws IOException {
+
+        //initialize scanner
+        Scanner scanner = new Scanner(System.in);
+
+        //absolute filepath
+        System.out.print("Enter absolute path to directory: ");
+        String directory_path = scanner.nextLine();
+        if (!new File(directory_path).exists() || !new File(directory_path).isDirectory()) {
+            System.out.print("Does not exist or is not a directory");
+            System.exit(1);
+        }
+
+        directory_path = directory_path.endsWith("/") ? directory_path : directory_path + "/";
+        //gather training and test files
+        System.out.print("Enter training file name: ");
+        String trainingfile = scanner.nextLine();
+        if (!new File(directory_path + trainingfile).exists()) {
+            System.out.print("File does not exist");
+            System.exit(1);
+        }
+        String trainingfile_converted = trainingfile + "_converted";
+        System.out.print("Enter test file name: ");
+        String testfile = scanner.nextLine();
+        if (!new File(directory_path + testfile).exists()) {
+            System.out.print("File does not exist");
+            System.exit(1);
+        }
+        String testfile_converted = testfile + "_converted";
+        String testfile_classified_original = testfile + "_classified_original";
+        String testfile_classified = testfile + "_classified";
+
+        //close scanner
+
 
         //preprocess files
-        convertTrainingFile(trainingFile, "trainingfile");
-        convertValidationFile(validationFile, "validationfile");
-        convertTestFile(testFile, "testfile");
+        convertTrainingFile(directory_path + trainingfile, directory_path + trainingfile_converted);
+        convertTestFile(directory_path + testfile, directory_path + testfile_converted);
+        int numberRecords = getNumberRecords(directory_path + trainingfile);
+        int errors = 0;
+        double startClock = System.nanoTime();
+        for (int skip = 0; skip < numberRecords; skip++) {
+            //construct nearest neighbor classifier
+            NearestNeighbor classifier = new NearestNeighbor();
 
-        //construct nearest neighbor classifier
-        NearestNeighbor classifier = new NearestNeighbor();
+            //set skip index
+            classifier.setSkipIndex(skip);
 
-        //load training data
-        classifier.loadTrainingData("trainingfile");
+            //load training data
+            classifier.loadTrainingData(directory_path + trainingfile_converted);
 
-        //set nearest neighbors
-        classifier.setParameters(NEIGHBORS);
+            //set nearest neighbors
+            classifier.setParameters(NEIGHBORS);
 
-        //classify file4output data
-        classifier.classifyData("testfile", "classifiedfile");
 
-        //postprocess files
-        convertClassFile("classifiedfile", "originalclassifiedfile");
+            //classify test data
+            classifier.classifyData(directory_path + testfile_converted, directory_path + testfile_classified_original);
 
-        //validate classfier
-        classifier.validate("validationfile");
+            //postprocess files
+            convertClassFile(directory_path + testfile_classified_original, directory_path + testfile_classified);
+
+            //validate classfier
+            errors += classifier.validate();
+        }
+        double endClock = System.nanoTime();
+
+        // System.out.println("Number of errors: " + (100.0 * errors / numberRecords) + "%");
+        System.out.print("Error rate: " + errors + "/" + numberRecords + " = " + (errors / (float) numberRecords) * 100 + "%");
+        System.out.println(" (" + (endClock - startClock) / 1000000000.0 + " seconds)");
+
+        //clean
+        System.out.println("Clean? y/n");
+        if (scanner.nextLine().equalsIgnoreCase("y")) {
+            System.out.print("Cleaning up");
+            Files.deleteIfExists(new File(directory_path + trainingfile_converted).toPath());
+            System.out.print(".");
+            Files.deleteIfExists(new File(directory_path + testfile_converted).toPath());
+            System.out.print(".");
+            Files.deleteIfExists(new File(directory_path + testfile_classified_original).toPath());
+            System.out.println(".");
+            Files.deleteIfExists(new File(directory_path + testfile_classified).toPath());
+            System.out.println("Done.");
+        }
+        scanner.close();
+    }
+
+
+    private static int getNumberRecords(String filepath) throws FileNotFoundException {
+        Scanner scanner = new Scanner(new File(filepath));
+        int numberRecords = scanner.nextInt();
+        scanner.close();
+        return numberRecords;
     }
 
     /*************************************************************************/
 
     //Method converts training file to numerical format
-    private static void convertTrainingFile(String inputFile, String outputFile) throws IOException
-    {
-        //input and output9 files
+    private static void convertTrainingFile(String inputFile, String outputFile) throws IOException {
+        //input and output files
         Scanner inFile = new Scanner(new File(inputFile));
         PrintWriter outFile = new PrintWriter(new FileWriter(outputFile));
 
         //read number of records, attributes, classes
-        int numberRecords = inFile.nextInt();    
-        int numberAttributes = inFile.nextInt();    
+        int numberRecords = inFile.nextInt();
+        int numberAttributes = inFile.nextInt();
         int numberClasses = inFile.nextInt();
 
         //write number of records, attributes, classes
         outFile.println(numberRecords + " " + numberAttributes + " " + numberClasses);
 
         //for each record
-        for (int i = 0; i < numberRecords; i++)    
-        {                         
-            String grade = inFile.next();                      //convert grade
-            double gradeNumber = convertGradeToNumber(grade);
-            outFile.print(gradeNumber + " ");
+        writeTrainingfile_to_File(inFile, outFile, numberRecords);
+    }
 
-            double gpa = inFile.nextDouble();                  //convert gpa
-            double gpaNumber = convertGPA(gpa);
-            outFile.print(gpaNumber + " ");
+    /*************************************************************************/
 
-            String className = inFile.next();                  //convert class name
-            int classNumber = convertClassToNumber(className);
-            outFile.println(classNumber);
+    private static void writeTrainingfile_to_File(Scanner inFile, PrintWriter outFile, int numberRecords) throws IOException {
+        for (int i = 0; i < numberRecords; i++) {
+            writeAttributes_to_File(inFile, outFile, numberRecords);
+            writeClasses_to_File(inFile, outFile, numberRecords);
+            outFile.println();
         }
-
         inFile.close();
         outFile.close();
     }
 
     /*************************************************************************/
 
-    //Method converts validation file to numerical format
-    private static void convertValidationFile(String inputFile, String outputFile) throws IOException
-    {
-        //input and output9 files
-        Scanner inFile = new Scanner(new File(inputFile));
-        PrintWriter outFile = new PrintWriter(new FileWriter(outputFile));
-
-        //read number of records
-        int numberRecords = inFile.nextInt();    
-
-        //write number of records
-        outFile.println(numberRecords);
-
-        //for each record
-        for (int i = 0; i < numberRecords; i++)    
-        {                         
-            String grade = inFile.next();                      //convert grade
-            double gradeNumber = convertGradeToNumber(grade);
-            outFile.print(gradeNumber + " ");
-
-            double gpa = inFile.nextDouble();                  //convert gpa
-            double gpaNumber = convertGPA(gpa);
-            outFile.print(gpaNumber + " ");
-
-            String className = inFile.next();                  //convert class name
-            int classNumber = convertClassToNumber(className);
-            outFile.println(classNumber);
+    private static void writeTestfile_to_File(Scanner inFile, PrintWriter outFile, int numberRecords) {
+        for (int i = 0; i < numberRecords; i++) {
+            writeAttributes_to_File(inFile, outFile, numberRecords);
+            outFile.println();
         }
-
         inFile.close();
         outFile.close();
     }
 
     /*************************************************************************/
 
-    //Method converts file4output file to numerical format
-    private static void convertTestFile(String inputFile, String outputFile) throws IOException
-    {
+    //Method calculates normalization and writes values to a file
+    private static void writeAttributes_to_File(Scanner inFile, PrintWriter outFile, int numberRecords) {
+        // a---X----b
+        // y = (x-a)/(b-a)
+        outFile.print(applyFunction((double) inFile.nextInt(), x -> (x - 500.0) / (900.0 - 500.0)) + " ");
+        outFile.print(applyFunction((double) inFile.nextInt(), x -> (x - 30.0) / (90.0 - 30.0)) + " ");
+        outFile.print(applyFunction((double) inFile.nextInt(), x -> (x - 30.0) / (80.0 - 30.0)) + " ");
+        outFile.print(applyFunction(inFile.next(), x -> x.equals("male") ? 0.0 : 1.0) + " ");
+        outFile.print(applyFunction(inFile.next(), x -> switch (x) {
+            case "single" -> 0.0;
+            case "married" -> 0.5;
+            case "divorced" -> 1.0;
+            default -> throw new IllegalArgumentException("Invalid attribute: " + x);
+        }) + " ");
+    }
+
+    private static void writeClasses_to_File(Scanner inFile, PrintWriter outFile, int numberRecords) {
+        outFile.print(applyFunction(inFile.next(), x -> switch (x) {
+            case "low" -> 1;
+            case "medium" -> 2;
+            case "high" -> 3;
+            case "undetermined" -> 4;
+            default -> throw new IllegalArgumentException("Invalid class: " + x);
+        }) + " ");
+    }
+
+
+    /*************************************************************************/
+
+    private static void convertTestFile(String inputFile, String outputFile) throws IOException {
         //input and output9 files
         Scanner inFile = new Scanner(new File(inputFile));
         PrintWriter outFile = new PrintWriter(new FileWriter(outputFile));
 
         //read number of records
-        int numberRecords = inFile.nextInt();    
+        int numberRecords = inFile.nextInt();
 
         //write number of records
         outFile.println(numberRecords);
 
-        //for each record
-        for (int i = 0; i < numberRecords; i++)    
-        {                         
-            String grade = inFile.next();                      //convert grade
-            double gradeNumber = convertGradeToNumber(grade);
-            outFile.print(gradeNumber + " ");
-
-            double gpa = inFile.nextDouble();                  //convert gpa
-            double gpaNumber = convertGPA(gpa);
-            outFile.println(gpaNumber + " ");
-        }
-
-        inFile.close();
-        outFile.close();
+        writeTestfile_to_File(inFile, outFile, numberRecords);
     }
 
     /*************************************************************************/
 
     //Method converts classified file to text format
-    private static void convertClassFile(String inputFile, String outputFile) throws IOException
-    {
+    private static void convertClassFile(String inputFile, String outputFile) throws IOException {
         //input and output9 files
         Scanner inFile = new Scanner(new File(inputFile));
         PrintWriter outFile = new PrintWriter(new FileWriter(outputFile));
 
         //read number of records
-        int numberRecords = inFile.nextInt();    
+        int numberRecords = inFile.nextInt();
 
         //write number of records
         outFile.println(numberRecords);
 
+        HashMap<Integer, String> options = new HashMap<>();
+        options.put(1, "low");
+        options.put(2, "medium");
+        options.put(3, "high");
+        options.put(4, "undetermined");
         //for each record
-        for (int i = 0; i < numberRecords; i++)    
-        {      
-            int number = inFile.nextInt();                     //convert class number
-            String className = convertNumberToClass(number);
+        for (int i = 0; i < numberRecords; i++) {
+            int number = inFile.nextInt();
+            //convert class number
+            String className = applyFunction(number, options::get);
             outFile.println(className);
         }
 
@@ -177,47 +227,9 @@ public class NearestNeighborTester
 
     /****************************************************************************/
 
-    //Method converts grade to number
-    private static double convertGradeToNumber(String grade)
-    {
-        if (grade.equals("A"))
-            return 1.0;
-        else if (grade.equals("B"))
-            return 0.5;
-        else
-            return 0.0; 
+    //lambda function to apply a function<t,r> to a value t using function.apply
+    private static <T, R> R applyFunction(T value, Function<T, R> function) {
+        return function.apply(value);
     }
-
-    /****************************************************************************/
-
-    //Method normalizes gpa
-    private static double convertGPA(double gpa)
-    {
-        return gpa/4;
-    } 
-
-    /****************************************************************************/
-
-    //Method converts class name to number
-    private static int convertClassToNumber(String className)
-    {
-        if (className.equals("good"))
-            return 1;
-        else
-            return 2; 
-    }
-
-    /****************************************************************************/
-
-    //Method converts number to class name
-    private static String convertNumberToClass(int number)
-    {
-        if (number == 1)
-            return "good";
-        else
-            return "bad"; 
-    }
-
-    /****************************************************************************/
 }
 

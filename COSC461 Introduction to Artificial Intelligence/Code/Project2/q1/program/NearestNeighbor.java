@@ -27,7 +27,8 @@ public class NearestNeighbor {
     private int numberClasses;               //number of classes
     private int numberNeighbors;             //number of nearest neighbors
     private ArrayList<Record> records;       //list of training records
-    private Record validationRecord;        //record for validation
+    private Record validationRecord;         //record for validation
+    private int skipIndex;
 
 
     /*************************************************************************/
@@ -40,17 +41,19 @@ public class NearestNeighbor {
         numberClasses = 0;
         numberNeighbors = 0;
         records = null;
+        validationRecord = null;
+        skipIndex = Integer.MIN_VALUE;
     }
 
     /*************************************************************************/
 
     //Method loads data from training file
-    public void loadTrainingData(String trainingFile, int skip) throws IOException {
+    public void loadTrainingData(String trainingFile) throws IOException {
+        int actualSkips = 0;
         Scanner inFile = new Scanner(new File(trainingFile));
 
         //read number of records, attributes, classes
         numberRecords = inFile.nextInt();
-
         numberAttributes = inFile.nextInt();
         numberClasses = inFile.nextInt();
 
@@ -63,26 +66,36 @@ public class NearestNeighbor {
             double[] attributeArray = new double[numberAttributes];
 
             //read attribute values
-            for (int j = 0; j < numberAttributes; j++)
+            for (int j = 0; j < numberAttributes; j++) {
                 attributeArray[j] = inFile.nextDouble();
-
+                if(attributeArray[j] > 1.0){
+                    throw new RuntimeException(attributeArray[j] + " is greater than 1.0");
+                }
+            }
             //read class name
             int className = inFile.nextInt();
+            if (className < 1 || className > numberClasses)
+                throw new RuntimeException("Invalid class name: " + className);
 
             //create record
             Record record = new Record(attributeArray, className);
 
-            if (i == skip) {
+            if (i == skipIndex) {
+                //assign validation record
+                actualSkips+=1;
                 validationRecord = record;
+
+
             } else {
                 //add record to list of records
                 records.add(record);
 
             }
-
-
         }
-
+        if(actualSkips == 0){
+            throw new RuntimeException("Zero records skipped");
+        }
+        numberRecords -= 1;
         inFile.close();
     }
 
@@ -93,9 +106,13 @@ public class NearestNeighbor {
         this.numberNeighbors = numberNeighbors;
     }
 
+    public void setSkipIndex(int skipIndex) {
+        this.skipIndex = skipIndex;
+    }
+
     /*************************************************************************/
 
-    //Method reads records from test file, determines their classes, 
+    //Method reads records from test file, determines their classes,
     //and writes classes to classified file
     public void classifyData(String testFile, String classifiedFile) throws IOException {
         Scanner inFile = new Scanner(new File(testFile));
@@ -115,8 +132,10 @@ public class NearestNeighbor {
             double[] attributeArray = new double[numberAttributes];
 
             //read attribute values
-            for (int j = 0; j < numberAttributes; j++)
+            for (int j = 0; j < numberAttributes; j++) {
                 attributeArray[j] = inFile.nextDouble();
+            }
+
 
             //find class of attributes
             int className = classify(attributeArray);
@@ -138,7 +157,7 @@ public class NearestNeighbor {
         int[] id = new int[numberRecords];
 
         //find distances between attributes and all records
-        for (int i = 0; i < numberRecords - 1; i++) {
+        for (int i = 0; i < numberRecords; i++) {
             distance[i] = distance(attributes, records.get(i).attributes);
             id[i] = i;
         }
@@ -210,11 +229,10 @@ public class NearestNeighbor {
 
     /*************************************************************************/
 
-    //Method validates classifier using validation file and displays error rate
+    //Method validates classifier using validation record and returns 1(error) or 0(no error)
     public int validate() throws IOException {
-        int numErrors = 0;
         //read attributes
-        double[] attributeArray = validationRecord.attributes;;
+        double[] attributeArray = validationRecord.attributes;
 
         //read actual class
         int actualClass = validationRecord.className;
@@ -222,20 +240,21 @@ public class NearestNeighbor {
         //find class predicted by classifier
         int predictedClass = classify(attributeArray);
 
-
-        //errror if predicted and actual classes do not match
+        //error if predicted and actual classes do not match
         if (predictedClass != actualClass)
-
-            numErrors +=1;
-
+            return 1;
 
         //find and print error rate
-        return numErrors;
+        return 0;
 
 
     }
 
     /************************************************************************/
+
+    private static <T,R> R applyFunction(T value, Function<T,R> function){
+        return function.apply(value);
+    }
 
 }
 
