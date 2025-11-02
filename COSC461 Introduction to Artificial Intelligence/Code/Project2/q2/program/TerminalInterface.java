@@ -2,162 +2,233 @@ package Project2.q2.program;
 
 import java.util.ArrayList;
 import java.util.Scanner;
-import java.util.function.Consumer; // Import Consumer
-import java.util.function.Function;
+import java.util.function.Consumer;
 
-
+/**
+ * A terminal interface that supports nested, category-based menus.
+ */
 public class TerminalInterface {
-    public ArrayList<Option> options;
-    private Scanner scanner; // Add a scanner for input
 
+    /**
+     * Represents a node in the menu tree. Can be a clickable option
+     * or a category that leads to a sub-menu.
+     */
+    public static class MenuNode {
+        public enum NodeType { CATEGORY, OPTION }
+
+        private String name;
+        private String description;
+        private NodeType type;
+        private Consumer<TerminalInterface> action; // Null for categories
+        private ArrayList<MenuNode> children;     // Null for options
+        private MenuNode parent;                  // Null for root
+
+        /**
+         * Constructor for an OPTION.
+         */
+        public MenuNode(String name, String description, Consumer<TerminalInterface> action) {
+            this.name = name;
+            this.description = description;
+            this.action = action;
+            this.type = NodeType.OPTION;
+            this.children = null;
+            this.parent = null;
+        }
+
+        /**
+         * Constructor for a CATEGORY.
+         */
+        public MenuNode(String name) {
+            this.name = name;
+            this.description = "Open the " + name + " menu";
+            this.action = null;
+            this.type = NodeType.CATEGORY;
+            this.children = new ArrayList<>();
+            this.parent = null;
+        }
+
+        /**
+         * Adds a child node (option or category) to this category.
+         * @param node The node to add.
+         */
+        public void addChild(MenuNode node) {
+            if (this.type == NodeType.CATEGORY) {
+                node.parent = this;
+                this.children.add(node);
+            }
+        }
+
+        // --- Getters ---
+        public String getName() { return name; }
+        public String getDescription() { return description; }
+        public NodeType getType() { return type; }
+        public Consumer<TerminalInterface> getAction() { return action; }
+        public ArrayList<MenuNode> getChildren() { return children; }
+        public MenuNode getParent() { return parent; }
+    }
+
+    // --- TerminalInterface Fields ---
+
+    private MenuNode rootMenu;
+    private MenuNode currentMenu;
+    private Scanner scanner;
+    private boolean isRunning;
+
+    /**
+     * Constructor for TerminalInterface.
+     */
+    public TerminalInterface() {
+        this.rootMenu = new MenuNode("Main Menu");
+        this.currentMenu = rootMenu;
+        this.scanner = new Scanner(System.in);
+        this.isRunning = true;
+    }
+
+    /**
+     * Gets the root menu node, which all other categories are added to.
+     * @return The root MenuNode.
+     */
+    public MenuNode getRootMenu() {
+        return this.rootMenu;
+    }
+
+    /**
+     * Helper method to add a new category (sub-menu) to a parent.
+     * @param name The name of the new category.
+     * @param parent The parent node (e.g., getRootMenu()).
+     * @return The newly created MenuNode for the category.
+     */
+    public MenuNode addCategory(String name, MenuNode parent) {
+        MenuNode category = new MenuNode(name);
+        parent.addChild(category);
+        return category;
+    }
+
+    /**
+     * Helper method to add a new option to a parent category.
+     * @param parent The parent category node.
+     * @param name The name of the option.
+     * @param description The description.
+     * @param action The Consumer action to run.
+     */
+    public void addOption(MenuNode parent, String name, String description, Consumer<TerminalInterface> action) {
+        MenuNode option = new MenuNode(name, description, action);
+        parent.addChild(option);
+    }
+
+    /**
+     * Displays a prompt and gets a string input from the user.
+     * @return The string entered by the user.
+     */
+    public String inString() {
+        return scanner.nextLine();
+    }
+
+    /**
+     * Displays a prompt and safely gets an integer input.
+     * @param prompt The prompt to display.
+     * @return The integer entered by the user.
+     */
+    public int inInt(String prompt) {
+        out(prompt);
+        while (true) {
+            try {
+                String line = scanner.nextLine();
+                return Integer.parseInt(line);
+            } catch (NumberFormatException e) {
+                out("Invalid input. Please enter a number.");
+            }
+        }
+    }
+
+    /**
+     * Displays a prompt and safely gets a double input.
+     * @param prompt The prompt to display.
+     * @return The double entered by the user.
+     */
+    public double inDouble(String prompt) {
+        out(prompt);
+        while (true) {
+            try {
+                String line = scanner.nextLine();
+                return Double.parseDouble(line);
+            } catch (NumberFormatException e) {
+                out("Invalid input. Please enter a decimal number (e.g., 0.5).");
+            }
+        }
+    }
+
+
+    /**
+     * Prints a string to the console.
+     * @param s The string to print.
+     */
     public void out(String s) {
         System.out.println(s);
     }
 
     /**
-     * Validates if the input string is a valid option index.
+     * Stops the main loop.
      */
-    public boolean in(String s) {
-        try {
-            int input = Integer.parseInt(s);
-            if (input < 0 || input >= options.size()) {
-                out("Invalid input. Please try again.");
-                return false;
-            } else {
-                return true;
-            }
-        } catch (NumberFormatException e) {
-            out("Invalid input. Please enter a number.");
-            return false;
-        }
-    }
-
-
-    public TerminalInterface() {
-        this.options = new ArrayList<>();
-        this.scanner = new Scanner(System.in); // Initialize scanner
+    public void stop() {
+        this.isRunning = false;
     }
 
     /**
-     * Add a new option with a name, description, and an action to execute.
-     *
-     * @param name        The name of the option (e.g., "Exit")
-     * @param description The help description
-     * @param action      A lambda function (Consumer) that
-     * takes this TerminalInterface as an argument.
-     */
-    public void addOption(String name, String description, Consumer<TerminalInterface> action) {
-        // Create the new option with the action
-        Option newOption = new Option(this.options.size() + ". " + name, description, action);
-        // Use your 'fun' method to add it to the list
-        fun(newOption, this.options::add);
-    }
-
-    public void addOptionList(ArrayList<Option> optionList) {
-        this.options.addAll(optionList);
-    }
-
-    // ... other methods like setOptionList, getOptionList ...
-    public void setOptionList(ArrayList<Option> optionList) {
-        this.options = optionList;
-    }
-
-    public ArrayList<Option> getOptionList() {
-        return this.options;
-    }
-
-
-    /**
-     * Displays all current options to the console.
-     */
-    public void displayOptions() {
-        out("\nPlease select an option:");
-        for (Option option : options) {
-            out(String.format("%-20s | %s", option.getName(), option.getDescription()));
-        }
-        System.out.print("> ");
-    }
-
-    /**
-     * Starts the main loop of the terminal interface.
+     * Starts the main terminal loop.
      */
     public void start() {
-        while (true) {
-            displayOptions();
-            String input = scanner.nextLine();
+        this.isRunning = true;
+        while (isRunning) {
+            displayMenu();
+            int choice = inInt("Select an option:");
 
-            if (in(input)) { // If input is valid
-                int index = Integer.parseInt(input);
-                // Get the selected option and execute its action
-                options.get(index).execute(this);
+            if (choice == 0) {
+                // Go Back
+                if (currentMenu.getParent() != null) {
+                    currentMenu = currentMenu.getParent();
+                } else {
+                    out("Already at Main Menu.");
+                }
+                continue;
             }
-        }
-    }
 
-    /**
-     * Gets a line of string input from the user.
-     * This uses the same scanner as the main loop.
-     */
-    public String inString() {
-        return this.scanner.nextLine();
-    }
+            // Adjust for 0-based index
+            choice--;
 
+            if (choice >= 0 && choice < currentMenu.getChildren().size()) {
+                MenuNode selectedNode = currentMenu.getChildren().get(choice);
 
-    /**
-     * Represents a single menu option with an associated action.
-     */
-    public static class Option {
-        private String name;
-        private String description;
-        // The action to perform, represented as a Consumer function
-        private Consumer<TerminalInterface> action;
-
-        public Option() {
-            this.name = null;
-            this.description = null;
-            this.action = null;
-        }
-
-        public Option(String name, String description, Consumer<TerminalInterface> action) {
-            this.name = name;
-            this.description = description;
-            this.action = action; // Store the action
-        }
-
-        /**
-         * Executes the action associated with this option.
-         *
-         * @param iface The TerminalInterface instance to pass to the action.
-         */
-        public void execute(TerminalInterface iface) {
-            if (this.action != null) {
-                this.action.accept(iface); // Run the lambda function
+                if (selectedNode.getType() == MenuNode.NodeType.CATEGORY) {
+                    // Navigate into sub-menu
+                    currentMenu = selectedNode;
+                } else {
+                    // Execute option
+                    selectedNode.getAction().accept(this);
+                }
             } else {
-                iface.out("This option has no action defined.");
+                out("Invalid option.");
             }
         }
-
-        // ... Getters and Setters ...
-        public String getName() {
-            return this.name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
-        }
-
-        public String getDescription() {
-            return this.description;
-        }
+        out("Closing scanner.");
+        scanner.close();
     }
 
-    public <T, R> R fun(T value, Function<T, R> function) {
-        return function.apply(value);
+    /**
+     * Displays the current menu.
+     */
+    private void displayMenu() {
+        out("\n--- [ " + currentMenu.getName() + " ] ---");
+        ArrayList<MenuNode> children = currentMenu.getChildren();
+        for (int i = 0; i < children.size(); i++) {
+            MenuNode node = children.get(i);
+            String typeIndicator = (node.getType() == MenuNode.NodeType.CATEGORY) ? " (Menu)" : "";
+            out((i + 1) + ". " + node.getName() + typeIndicator + " (" + node.getDescription() + ")");
+        }
+        if (currentMenu.getParent() != null) {
+            out("0. Go Back");
+        }
+        out("---------------------");
     }
 }
-
 

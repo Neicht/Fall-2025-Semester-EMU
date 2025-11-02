@@ -1,135 +1,35 @@
 package Project2.q2.program;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections; // Import for shuffling
 import java.util.function.Consumer;
 import java.util.function.Function;
+// Import the ImagePreset enum, as this class now handles loading presets
+import Project2.q2.program.ImagePreset;
 
+/**
+ * Controller class for the MakeImages application.
+ * Holds the application state (paths, parameters) and connects the
+ * TerminalInterface (View) to the Image (Model).
+ */
 public class MakeImages {
+    // --- Application State ---
     private String path;
     private String inFile;
     private String outFile;
-    private static final char BLANK = ' ';
-    private static final char INK = 'X';
-    private static final int WIDTH = 16;
-    private static final int HEIGHT = 16;
+    public double distortionRate;
+    public int magnitude;
+    public double shearFactor;
+    public double scaleX;
+    public double scaleY;
+
+    // The Image (Model) is now an instance, not a nested class
     private Image image;
-
-    // --- Image Inner Class ---
-    public static class Image {
-        private int[][] data;
-
-        public Image() {
-            this.data = new int[HEIGHT][WIDTH];
-        }
-
-        public int[][] getData() {
-            return data;
-        }
-
-        public void setData(int[][] data) {
-            this.data = data;
-        }
-
-        public void distort(double distortionRate, int magnitude) {
-            // Create a new blank array to draw the distorted image onto.
-            int[][] destination = new int[HEIGHT][WIDTH];
-
-            // Clamp inputs to safe values
-            magnitude = Math.max(0, magnitude);
-            distortionRate = Math.max(0.0, Math.min(1.0, distortionRate));
-
-            for (int r = 0; r < HEIGHT; r++) {
-                for (int c = 0; c < WIDTH; c++) {
-
-                    // We only care about moving '1' pixels (the "ink")
-                    if (this.data[r][c] == 1) {
-                        int newR = r;
-                        int newC = c;
-
-                        // Step 1: Decide IF this pixel should move
-                        if (Math.random() < distortionRate) {
-                            // Step 2: Decide HOW FAR to move it
-                            // A random shift between -magnitude and +magnitude
-                            int shiftR = (int) (Math.random() * (2 * magnitude + 1)) - magnitude;
-                            int shiftC = (int) (Math.random() * (2 * magnitude + 1)) - magnitude;
-
-                            newR = r + shiftR;
-                            newC = c + shiftC;
-
-                            // Step 3: Clamp the new position to be within the 16x16 grid
-                            newR = Math.max(0, Math.min(HEIGHT - 1, newR));
-                            newC = Math.max(0, Math.min(WIDTH - 1, newC));
-                        }
-
-                        // Step 4: "Draw" the pixel at its new (or original) location
-                        destination[newR][newC] = 1;
-
-                    }
-                }
-            }
-            this.data = destination;
-        }
-
-        public void display() {
-            for (int i = 0; i < data.length; i++) {
-                for (int j = 0; j < data[i].length; j++) {
-                    // Print X for 1 and . for 0 to make it visual
-                    System.out.print((data[i][j] == 1 ? INK : BLANK));
-                }
-                System.out.println();
-            }
-        }
-
-        public String parseImagetoString(){
-            StringBuilder s = new StringBuilder();
-            for (int[] datum : data) {
-                for (int i : datum) {
-                    s.append(i == 1 ? INK : BLANK);
-                }
-            }
-            return s.toString();
-        }
-
-        // public void fileWrite(String outFile, String s) throws IOException { // OLD
-        public void fileWrite(String outFile) throws IOException { // NEW
-            PrintWriter writer = new PrintWriter(new FileWriter(outFile));
-
-            String imageString = parseImagetoString(); // Generate the correct string
-
-            // System.out.println(s); // OLD
-            System.out.println(imageString); // NEW: Print the *actual* image string
-
-            // writer.println(parseImagetoString()); // OLD (was fine, but redundant)
-            writer.println(imageString); // NEW: Write the same string to the file
-            writer.close();
-        }
-
-        public void save(String path) {
-            // TODO: Add logic to save the 'data' array to a file at 'path'
-            System.out.println("Image saving logic not implemented.");
-        }
-
-        public void load(String path) {
-            // TODO: Add logic to load data from a file at 'path'
-            System.out.println("Image loading logic not implemented.");
-        }
-
-        public void clear() {
-            this.data = new int[HEIGHT][WIDTH];
-        }
-
-        public void loadUnitZero() {
-            this.data = ImagePreset.ZERO.getData();
-        }
-
-        public void loadUnitOne() {
-            this.data = ImagePreset.ONE.getData();
-        }
-    }
-    // --- End Image Inner Class ---
 
     public Image getImage() {
         return this.image;
@@ -145,143 +45,335 @@ public class MakeImages {
 
     /**
      * Constructor for MakeImages.
-     * Initializes the image and sets a default path.
      */
     public MakeImages() {
-        this.image = new Image();
-        this.path = "/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/Project2/q2/program/Data/"; // Set a default path
+        this.image = new Image(); // Create an instance of the external Image class
+        this.path = "/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/Project2/q2/program/Data/"; // Example: relative path
         this.inFile = "infile.txt";
         this.outFile = "outfile.txt";
-        }
+        this.distortionRate = 0.2;
+        this.magnitude = 1;
+        this.shearFactor = 0.0;
+        this.scaleX = 1.0;
+        this.scaleY = 1.0;
+    }
 
     public static void main(String[] args) {
-        // Create an instance of MakeImages
         MakeImages app = new MakeImages();
-        // Call the non-static run method
         app.run();
     }
 
-    /**
-     * Non-static run method.
-     * Creates the terminal and starts its main loop.
-     */
     public void run() {
         TerminalInterface terminal = loadTerminalInterface();
-        // Use the terminal's built-in start() method
         terminal.start();
     }
 
-    /**
-     * Non-static method to load the terminal.
-     */
     public TerminalInterface loadTerminalInterface() {
-        TerminalInterface terminal = new TerminalInterface();
-        initializeOptions(terminal);
-        return terminal;
+        TerminalInterface t = new TerminalInterface();
+        initializeOptions(t);
+        return t;
     }
 
     /**
-     * Non-static method to generate options.
-     * Can now access the MakeImages instance using 'MakeImages.this'
+     * Main method to set up all menu options.
+     * This is now a simple coordinator that calls helper methods for each category.
      */
     public void initializeOptions(TerminalInterface t) {
+        TerminalInterface.MenuNode root = t.getRootMenu();
 
-        t.addOption("Set Path", "Set the path to the images directory", new Consumer<TerminalInterface>() {
-            @Override
-            public void accept(TerminalInterface terminalInterface) {
-                terminalInterface.out("Current path is: " + MakeImages.this.path);
-                terminalInterface.out("Enter new path:");
+        setupFileMenu(t, root);
+        setupImageMenu(t, root);
+        setupDistortMenu(t, root);
+        setupBatchMenu(t, root); // Replaced old batch logic
+        setupProgramMenu(t, root);
+    }
 
-                // We will add an 'inString()' method to TerminalInterface
-                String newPath = terminalInterface.inString();
+    // --- Private UI Helper Methods ---
 
-                // Use MakeImages.this to refer to the outer class instance
-                MakeImages.this.setPath(newPath);
-
-                terminalInterface.out("Path has been set to: " + MakeImages.this.path);
-            }
+    /**
+     * Creates all options for the "File" menu category.
+     */
+    private void setupFileMenu(TerminalInterface t, TerminalInterface.MenuNode root) {
+        TerminalInterface.MenuNode fileMenu = t.addCategory("File", root);
+        t.addOption(fileMenu, "Set Path", "Set the path to the images directory", (iface) -> {
+            iface.out("Current path is: " + MakeImages.this.path);
+            iface.out("Enter new path (end with /):");
+            MakeImages.this.setPath(iface.inString());
+            iface.out("Path has been set to: " + MakeImages.this.path);
         });
-
-        t.addOption("Set In-File", "Set the In-File name", new Consumer<TerminalInterface>() {
-            @Override
-            public void accept(TerminalInterface terminalInterface) {
-                terminalInterface.out("Current In-File is: " + MakeImages.this.inFile);
-                terminalInterface.out("Enter new In-File:");
-                MakeImages.this.inFile = terminalInterface.inString();
-            }
+        t.addOption(fileMenu, "Set In-File", "Set the In-File name", (iface) -> {
+            iface.out("Current In-File is: " + MakeImages.this.inFile);
+            iface.out("Enter new In-File:");
+            MakeImages.this.inFile = iface.inString();
         });
-
-        t.addOption("Set Out-File", "Set the Out-File name", new Consumer<TerminalInterface>() {
-            @Override
-            public void accept(TerminalInterface terminalInterface) {
-                terminalInterface.out("Current Out-File is: " + MakeImages.this.outFile);
-                terminalInterface.out("Enter new Out-File:");
-                MakeImages.this.outFile = terminalInterface.inString();
-            }
+        t.addOption(fileMenu, "Set Out-File", "Set the Out-File name", (iface) -> {
+            iface.out("Current Out-File is: " + MakeImages.this.outFile);
+            iface.out("Enter new Out-File:");
+            MakeImages.this.outFile = iface.inString();
         });
-
-        // I've uncommented and implemented the other options as examples
-
-        t.addOption("Make Image", "Make an image (not implemented)", (iface) -> {
-            iface.out("Editor not implemented. Use 'Make Zero' or 'Make One'.");
-        });
-
-        t.addOption("Clear Image", "Clear the image (set to all 0s)", (iface) -> {
-            MakeImages.this.image.clear();
-            iface.out("Image cleared.");
-            MakeImages.this.image.display();
-        });
-
-        t.addOption("Save Image", "Save the image to a file", (iface) -> {
-            // MakeImages.this.image.save(MakeImages.this.path); // This is still a stub
-            iface.out("Writing image to file: " + MakeImages.this.outFile);
+        t.addOption(fileMenu, "Save Image", "Save the image to the Out-File", (iface) -> {
             try {
-                MakeImages.this.image.fileWrite(MakeImages.this.outFile);
+                String fullPath = MakeImages.this.getPath() + MakeImages.this.outFile;
+                iface.out("Appending image to file: " + fullPath);
+                MakeImages.this.image.fileWrite(fullPath);
             } catch (IOException e) {
                 System.err.println("Error writing to file: " + e.getMessage());
             }
         });
-
-        t.addOption("Load Image", "Load an image from a file", (iface) -> {
+        t.addOption(fileMenu, "Load Image", "Load an image from In-File (not implemented)", (iface) -> {
             MakeImages.this.image.load(MakeImages.this.path);
-            iface.out("Load image called (logic not implemented).");
         });
+    }
 
-        t.addOption("Distort Image", "Distort the image", (iface) -> {
-            MakeImages.this.image.distort(0.5, 2);
-            iface.out("Image distorted.");
-            MakeImages.this.image.display();
-        });
-
-        t.addOption("Load 'Zero'", "Load the unit zero image.", (iface) -> {
-            MakeImages.this.image.loadUnitZero();
-            iface.out("Image set to unit '0'.");
-            MakeImages.this.image.display();
-        });
-
-        t.addOption("Load 'One'", "Load the unit one image.", (iface) -> {
-            MakeImages.this.image.loadUnitOne();
-            iface.out("Image set to unit '1'.");
-            MakeImages.this.image.display();
-        });
-
-        t.addOption("Display Image", "Display the image", (iface) -> {
+    /**
+     * Creates all options for the "Image" menu category.
+     */
+    private void setupImageMenu(TerminalInterface t, TerminalInterface.MenuNode root) {
+        TerminalInterface.MenuNode imageMenu = t.addCategory("Image", root);
+        t.addOption(imageMenu, "Display Image", "Display the current image in the console", (iface) -> {
             iface.out("Current Image:");
             MakeImages.this.image.display();
         });
+        t.addOption(imageMenu, "Load 'Zero'", "Load the unit zero image", (iface) -> {
+            // Controller sets the image data from the preset
+            MakeImages.this.image.setData(ImagePreset.ZERO.getDeepCopy());
+            iface.out("Image set to unit '0'.");
+            MakeImages.this.image.display();
+        });
+        t.addOption(imageMenu, "Load 'One'", "Load the unit one image", (iface) -> {
+            // Controller sets the image data from the preset
+            MakeImages.this.image.setData(ImagePreset.ONE.getDeepCopy());
+            iface.out("Image set to unit '1'.");
+            MakeImages.this.image.display();
+        });
+        t.addOption(imageMenu, "Clear Image", "Clear the image (set to all 0s)", (iface) -> {
+            MakeImages.this.image.clear();
+            iface.out("Image cleared.");
+            MakeImages.this.image.display();
+        });
+    }
 
-        t.addOption("Read File", "Display the contents of in-file", (iface) -> {
-            iface.out("Current In-File:" + MakeImages.this.inFile);
-
+    /**
+     * Creates all options for the "Distort" menu category and its sub-menu.
+     */
+    private void setupDistortMenu(TerminalInterface t, TerminalInterface.MenuNode root) {
+        TerminalInterface.MenuNode distortMenu = t.addCategory("Distort", root);
+        t.addOption(distortMenu, "Apply Scale", "Scale image using current X and Y factors", (iface) -> {
+            iface.out("Applying scale: " + MakeImages.this.scaleX + "x, " + MakeImages.this.scaleY + "y");
+            MakeImages.this.image.applyScale(MakeImages.this.scaleX, MakeImages.this.scaleY);
+            MakeImages.this.image.display();
+        });
+        t.addOption(distortMenu, "Apply Shear", "Angle the image using current Shear Factor", (iface) -> {
+            iface.out("Applying shear: " + MakeImages.this.shearFactor);
+            MakeImages.this.image.applyShear(MakeImages.this.shearFactor);
+            MakeImages.this.image.display();
+        });
+        t.addOption(distortMenu, "Apply Jitter", "Smear image using current Rate and Magnitude", (iface) -> {
+            iface.out("Applying jitter: " + MakeImages.this.distortionRate + " rate, " + MakeImages.this.magnitude + " magnitude");
+            MakeImages.this.image.applyJitter(MakeImages.this.distortionRate, MakeImages.this.magnitude);
+            MakeImages.this.image.display();
+        });
+        t.addOption(distortMenu, "Apply Thicken (Dilation)", "Thicken the image", (iface) -> {
+            iface.out("Applying dilation...");
+            MakeImages.this.image.applyDilation();
+            MakeImages.this.image.display();
+        });
+        t.addOption(distortMenu, "Apply Thin (Erosion)", "Thin the image", (iface) -> {
+            iface.out("Applying erosion...");
+            MakeImages.this.image.applyErosion();
+            MakeImages.this.image.display();
         });
 
-        t.addOption("Exit", "Exit the program", (iface) -> {
+        // This is the sub-menu
+        TerminalInterface.MenuNode paramsMenu = t.addCategory("Modify Parameters", distortMenu);
+        t.addOption(paramsMenu, "Set Scale X", "Set the horizontal scale factor (1.0 = normal)", (iface) -> {
+            iface.out("Current Scale X: " + MakeImages.this.scaleX);
+            MakeImages.this.scaleX = iface.inDouble("Enter new Scale X (e.g., 1.2):");
+            iface.out("Scale X set to: " + MakeImages.this.scaleX);
+        });
+        t.addOption(paramsMenu, "Set Scale Y", "Set the vertical scale factor (1.0 = normal)", (iface) -> {
+            iface.out("Current Scale Y: " + MakeImages.this.scaleY);
+            MakeImages.this.scaleY = iface.inDouble("Enter new Scale Y (e.g., 0.8):");
+            iface.out("Scale Y set to: " + MakeImages.this.scaleY);
+        });
+        t.addOption(paramsMenu, "Set Distortion Rate", "Set the jitter probability (0.0 - 1.0)", (iface) -> {
+            iface.out("Current distortion rate: " + MakeImages.this.distortionRate);
+            MakeImages.this.distortionRate = iface.inDouble("Enter new rate:");
+            iface.out("Distortion rate set to: " + MakeImages.this.distortionRate);
+        });
+        t.addOption(paramsMenu, "Set Magnitude", "Set the jitter distance (e.g., 1, 2)", (iface) -> {
+            iface.out("Current magnitude: " + MakeImages.this.magnitude);
+            MakeImages.this.magnitude = iface.inInt("Enter new magnitude:");
+            iface.out("Magnitude set to: " + MakeImages.this.magnitude);
+        });
+        t.addOption(paramsMenu, "Set Shear Factor", "Set the angle of the image (-1.0 to 1.0)", (iface) -> {
+            iface.out("Current shear factor: " + MakeImages.this.shearFactor);
+            MakeImages.this.shearFactor = iface.inDouble("Enter new shear factor (e.g., 0.3):");
+            iface.out("Shear factor set to: " + MakeImages.this.shearFactor);
+        });
+    }
+
+    /**
+     * Creates all options for the "Batch" menu category.
+     */
+    private void setupBatchMenu(TerminalInterface t, TerminalInterface.MenuNode root) {
+        TerminalInterface.MenuNode batchMenu = t.addCategory("Batch", root);
+
+        t.addOption(batchMenu, "Generate Training File", "Generate 20+ images (zeros and ones)", (iface) -> {
+            iface.out("--- Generate Training File ---");
+            int numZeros = iface.inInt("How many '0' images? (e.g., 10)");
+            int numOnes = iface.inInt("How many '1' images? (e.g., 10)");
+            iface.out("Enter filename (e.g., training.txt):");
+            String fileName = iface.inString();
+
+            runBatchGeneration(iface, fileName, numZeros, numOnes);
+        });
+
+        t.addOption(batchMenu, "Generate Test File", "Generate 5+ images (zeros and ones)", (iface) -> {
+            iface.out("--- Generate Test File ---");
+            int numZeros = iface.inInt("How many '0' images? (e.g., 3)");
+            int numOnes = iface.inInt("How many '1' images? (e.g., 2)");
+            iface.out("Enter filename (e.g., test.txt):");
+            String fileName = iface.inString();
+
+            runBatchGeneration(iface, fileName, numZeros, numOnes);
+        });
+    }
+
+    /**
+     * Helper method to write the file header. Overwrites any existing file.
+     * Format: RecordCount Width Height
+     */
+    private void fileWriteTrainingHeader(String outFile, int recordCount) throws IOException {
+        // 'new FileWriter(outFile)' (or false) overwrites the file
+        try (PrintWriter writer = new PrintWriter(new FileWriter(outFile, false))) {
+            writer.println(recordCount + " " + 16 + " " + 16);
+            writer.println(); // Add a blank line for readability
+        }
+    }
+
+    /**
+     * Re-usable helper method to run the full batch generation process.
+     */
+    private void runBatchGeneration(TerminalInterface iface, String fileName, int numZeros, int numOnes) {
+        iface.out("--- Batch Generation Parameters ---");
+        double maxShear = iface.inDouble("Max Shear (e.g., 0.4)?");
+        double minScale = iface.inDouble("Min Scale (e.g., 0.8)?");
+        double maxScale = iface.inDouble("Max Scale (e.g., 1.2)?");
+        double maxJitterRate = iface.inDouble("Max Jitter Rate (e.g., 0.5)?");
+        int jitterMag = iface.inInt("Jitter Magnitude (e.g., 1)?");
+
+        String fullPath = MakeImages.this.getPath() + fileName;
+
+        // --- Create a shuffled list of labels ---
+        ArrayList<String> labels = new ArrayList<>();
+        for (int i = 0; i < numZeros; i++) labels.add("0");
+        for (int i = 0; i < numOnes; i++) labels.add("1");
+        Collections.shuffle(labels);
+
+        int totalRecords = labels.size();
+        if (totalRecords == 0) {
+            iface.out("No images to generate. Aborting.");
+            return;
+        }
+
+        iface.out("Starting batch generation for " + totalRecords + " images...");
+        long startTime = System.currentTimeMillis();
+
+        try {
+            // 1. Write the header (this overwrites the file)
+            fileWriteTrainingHeader(fullPath, totalRecords);
+
+            // 2. Run Loop and append records
+            for (int i = 0; i < totalRecords; i++) {
+                String label = labels.get(i);
+
+                // Load base image
+                if (label.equals("0")) {
+                    MakeImages.this.image.setData(ImagePreset.ZERO.getDeepCopy());
+                } else {
+                    MakeImages.this.image.setData(ImagePreset.ONE.getDeepCopy());
+                }
+
+                // Strengthen the '0' *before* destructive transforms
+                if (label.equals("0")) {
+                    MakeImages.this.image.applyDilation();
+                }
+
+                // Generate random parameters
+                double randShear = (Math.random() * 2 * maxShear) - maxShear;
+                double randScaleX = minScale + (Math.random() * (maxScale - minScale));
+                double randScaleY = minScale + (Math.random() * (maxScale - minScale));
+                double randJitterRate = Math.random() * maxJitterRate;
+
+                // Apply transformations (Robust Order)
+                MakeImages.this.image.applyJitter(randJitterRate, jitterMag);
+                MakeImages.this.image.applyScale(randScaleX, randScaleY);
+                MakeImages.this.image.applyShear(randShear);
+
+                // Save record (image + label)
+                MakeImages.this.image.fileWriteRecord(fullPath, label);
+
+                if ((i + 1) % 10 == 0 || i == totalRecords - 1) {
+                    iface.out("...Generated " + (i + 1) + " of " + totalRecords);
+                }
+            }
+        } catch (IOException e) {
+            iface.out("ERROR writing batch file: " + e.getMessage());
+            iface.out("Aborting batch.");
+            return;
+        }
+
+        long endTime = System.currentTimeMillis();
+        iface.out("--- Batch Complete ---");
+        iface.out("Successfully generated and saved " + totalRecords + " records.");
+        iface.out("File location: " + fullPath);
+        iface.out("Time taken: " + (endTime - startTime) + "ms");
+    }
+
+
+    /**
+     * Creates all options for the "Program" menu category.
+     */
+    private void setupProgramMenu(TerminalInterface t, TerminalInterface.MenuNode root) {
+        TerminalInterface.MenuNode programMenu = t.addCategory("Program", root);
+        t.addOption(programMenu, "Status", "Display all current settings and image status", (iface) -> {
+            iface.out("--- Current Program Status ---");
+            iface.out("------------------------------");
+            iface.out("Directory Path: " + MakeImages.this.getPath());
+            iface.out("Input File:     " + MakeImages.this.inFile);
+            iface.out("Output File:    " + MakeImages.this.outFile);
+            iface.out("Full Out-Path:  " + MakeImages.this.getPath() + MakeImages.this.outFile);
+            iface.out("");
+            iface.out("---- Current Parameters ----");
+            iface.out("Scale X:         " + MakeImages.this.scaleX);
+            iface.out("Scale Y:         " + MakeImages.this.scaleY);
+            iface.out("Shear Factor:    " + MakeImages.this.shearFactor);
+            iface.out("Distortion Rate: " + MakeImages.this.distortionRate);
+            iface.out("Magnitude:       " + MakeImages.this.magnitude);
+            iface.out("");
+            iface.out("--- Current Image Status ---");
+            int[][] currentData = MakeImages.this.image.getData();
+            if (Arrays.deepEquals(currentData, ImagePreset.ZERO.getData())) {
+                iface.out("Image: Loaded 'ZERO' preset.");
+            } else if (Arrays.deepEquals(currentData, ImagePreset.ONE.getData())) {
+                iface.out("Image: Loaded 'ONE' preset.");
+            } else if (MakeImages.this.image.isAllZeros()) {
+                iface.out("Image: CLEARED (all zeros).");
+            } else {
+                iface.out("Image: Custom or distorted.");
+            }
+            iface.out("");
+            iface.out("--- Image Preview ---");
+            MakeImages.this.image.display();
+            iface.out("------------------------------");
+        });
+        t.addOption(programMenu, "Exit", "Exit the program", (iface) -> {
             iface.out("Goodbye!");
-            System.exit(0);
+            iface.stop();
         });
     }
 
-    public <T, R> R fun(T value, Function<T, R> function) {
-        return function.apply(value);
-    }
+    // Unused method has been removed
 }
+
