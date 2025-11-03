@@ -13,8 +13,8 @@ public class Image {
     // Image properties are now self-contained
     private static final int WIDTH = 16;
     private static final int HEIGHT = 16;
-    private static final char BLANK = ' ';
-    private static final char INK = 'X';
+    private static final char BLANK = '0';
+    private static final char INK = '1';
 
     private int[][] data;
 
@@ -301,7 +301,7 @@ public class Image {
     public void fileWriteRecord(String outFile, String label) throws IOException {
         try (PrintWriter writer = new PrintWriter(new FileWriter(outFile, true))) {
             writer.println(parseImagetoString()); // The 16x16 grid
-            writer.println("LABEL: " + label);    // The label
+            writer.println(label);    // The label
             writer.println(); // A blank line for readability
         }
     }

@@ -226,7 +226,7 @@ public class MakeImages {
             iface.out("Enter filename (e.g., training.txt):");
             String fileName = iface.inString();
 
-            runBatchGeneration(iface, fileName, numZeros, numOnes);
+            runBatchGeneration(iface, fileName, numZeros, numOnes, "TRAIN");
         });
 
         t.addOption(batchMenu, "Generate Test File", "Generate 5+ images (zeros and ones)", (iface) -> {
@@ -236,18 +236,20 @@ public class MakeImages {
             iface.out("Enter filename (e.g., test.txt):");
             String fileName = iface.inString();
 
-            runBatchGeneration(iface, fileName, numZeros, numOnes);
+            runBatchGeneration(iface, fileName, numZeros, numOnes, "TEST");
         });
     }
 
     /**
      * Helper method to write the file header. Overwrites any existing file.
-     * Format: RecordCount Width Height
+     * Format: RecordCount Attributes Classes
      */
     private void fileWriteTrainingHeader(String outFile, int recordCount) throws IOException {
         // 'new FileWriter(outFile)' (or false) overwrites the file
         try (PrintWriter writer = new PrintWriter(new FileWriter(outFile, false))) {
-            writer.println(recordCount + " " + 16 + " " + 16);
+            // --- FIX: Header must be [records] [attributes] [classes] ---
+            // 256 attributes (16x16), 2 classes (0 or 1)
+            writer.println(recordCount + " " + 256 + " " + 2);
             writer.println(); // Add a blank line for readability
         }
     }
@@ -255,7 +257,7 @@ public class MakeImages {
     /**
      * Re-usable helper method to run the full batch generation process.
      */
-    private void runBatchGeneration(TerminalInterface iface, String fileName, int numZeros, int numOnes) {
+    private void runBatchGeneration(TerminalInterface iface, String fileName, int numZeros, int numOnes, String setType) {
         iface.out("--- Batch Generation Parameters ---");
         double maxShear = iface.inDouble("Max Shear (e.g., 0.4)?");
         double minScale = iface.inDouble("Min Scale (e.g., 0.8)?");
@@ -267,8 +269,8 @@ public class MakeImages {
 
         // --- Create a shuffled list of labels ---
         ArrayList<String> labels = new ArrayList<>();
-        for (int i = 0; i < numZeros; i++) labels.add("0");
-        for (int i = 0; i < numOnes; i++) labels.add("1");
+        for (int i = 0; i < numZeros; i++) labels.add("zero");
+        for (int i = 0; i < numOnes; i++) labels.add("one");
         Collections.shuffle(labels);
 
         int totalRecords = labels.size();
@@ -289,14 +291,14 @@ public class MakeImages {
                 String label = labels.get(i);
 
                 // Load base image
-                if (label.equals("0")) {
+                if (label.equals("zero")) {
                     MakeImages.this.image.setData(ImagePreset.ZERO.getDeepCopy());
                 } else {
                     MakeImages.this.image.setData(ImagePreset.ONE.getDeepCopy());
                 }
 
                 // Strengthen the '0' *before* destructive transforms
-                if (label.equals("0")) {
+                if (label.equals("zero")) {
                     MakeImages.this.image.applyDilation();
                 }
 
@@ -312,7 +314,13 @@ public class MakeImages {
                 MakeImages.this.image.applyShear(randShear);
 
                 // Save record (image + label)
-                MakeImages.this.image.fileWriteRecord(fullPath, label);
+                if (setType.equals("TRAIN")) {
+                    MakeImages.this.image.fileWriteRecord(fullPath, label);
+                }else if (setType.equals("TEST")){
+                    MakeImages.this.image.fileWriteImageOnly(fullPath);
+                }else{
+                    throw new IllegalArgumentException("Invalid batch set type: " + setType);
+                }
 
                 if ((i + 1) % 10 == 0 || i == totalRecords - 1) {
                     iface.out("...Generated " + (i + 1) + " of " + totalRecords);
@@ -376,4 +384,5 @@ public class MakeImages {
 
     // Unused method has been removed
 }
+
 

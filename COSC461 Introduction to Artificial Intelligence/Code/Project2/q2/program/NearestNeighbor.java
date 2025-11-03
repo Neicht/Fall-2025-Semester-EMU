@@ -15,15 +15,15 @@ public class NearestNeighbor {
 
         //Constructor of Record
         private Record(double[] attributes, int className) {
-            this.attributes = attributes;    //set attributes 
+            this.attributes = attributes;    //set attributes
             this.className = className;      //set class
         }
     }
 
     /*************************************************************************/
 
-    private int numberRecords;               //number of training records   
-    private int numberAttributes;            //number of attributes   
+    private int numberRecords;               //number of training records
+    private int numberAttributes;            //number of attributes
     private int numberClasses;               //number of classes
     private int numberNeighbors;             //number of nearest neighbors
     private ArrayList<Record> records;       //list of training records
@@ -35,7 +35,7 @@ public class NearestNeighbor {
 
     //Constructor of NearestNeighbor
     public NearestNeighbor() {
-        //initial data is empty           
+        //initial data is empty
         numberRecords = 0;
         numberAttributes = 0;
         numberClasses = 0;
@@ -65,24 +65,31 @@ public class NearestNeighbor {
             //create attribute array
             double[] attributeArray = new double[numberAttributes];
 
+
+            // --- FIX: Read 256 attributes from one line ---
             //read attribute values
             for (int j = 0; j < numberAttributes; j++) {
                 attributeArray[j] = inFile.nextDouble();
-                if(attributeArray[j] > 1.0){
-                    throw new RuntimeException(attributeArray[j] + " is greater than 1.0");
-                }
             }
+            // --- FIX: Removed the nested loop and debug prints ---
+
             //read class name
+            // --- FIX: Read class as an int directly ---
             int className = inFile.nextInt();
-            if (className < 1 || className > numberClasses)
-                throw new RuntimeException("Invalid class name: " + className);
+            inFile.nextLine(); // Consume the rest of the line
+
+            // --- FIX: Removed debug print ---
+//            System.out.println(className);
+//            if (className < 1 || className > numberClasses)
+//                throw new RuntimeException("Invalid class name: " + className);
 
             //create record
+            // --- FIX: Use the int className directly ---
             Record record = new Record(attributeArray, className);
 
             if (i == skipIndex) {
                 //assign validation record
-                actualSkips+=1;
+                actualSkips += 1;
                 validationRecord = record;
 
 
@@ -92,10 +99,22 @@ public class NearestNeighbor {
 
             }
         }
-        if(actualSkips == 0){
-            throw new RuntimeException("Zero records skipped");
+
+        // --- FIX: Only adjust record count and check for skips if we are in validation mode ---
+        // (i.e., skipIndex is a valid index).
+        // For classification, skipIndex will be Integer.MIN_VALUE, and we want to load all records.
+        if (skipIndex >= 0) {
+            if (actualSkips == 0) {
+                // This should no longer happen, but it's good practice to keep.
+                throw new RuntimeException("Zero records skipped for validation (skipIndex=" + skipIndex + ")");
+            }
+            // Decrement record count *only* for validation, as one record was held out
+            numberRecords -= 1;
         }
-        numberRecords -= 1;
+        // If not in validation mode (skipIndex < 0), numberRecords remains the full count,
+        // and all records are added to the 'records' list.
+
+
         inFile.close();
     }
 
@@ -119,14 +138,17 @@ public class NearestNeighbor {
         PrintWriter outFile = new PrintWriter(new FileWriter(classifiedFile));
 
         //read number of records
-        int numberRecords = inFile.nextInt();
+        int numberRecordsInTestFile = inFile.nextInt();
+
+        // Read and discard attribute/class info from test file header
+        inFile.nextInt();
+        inFile.nextInt();
 
         //write number of records
-        outFile.println(numberRecords);
+        outFile.println(numberRecordsInTestFile);
 
         //for each record
-
-        for (int i = 0; i < numberRecords; i++) {
+        for (int i = 0; i < numberRecordsInTestFile; i++) {
 
             //create attribute array
             double[] attributeArray = new double[numberAttributes];
@@ -135,7 +157,6 @@ public class NearestNeighbor {
             for (int j = 0; j < numberAttributes; j++) {
                 attributeArray[j] = inFile.nextDouble();
             }
-
 
             //find class of attributes
             int className = classify(attributeArray);
@@ -201,8 +222,20 @@ public class NearestNeighbor {
             frequency[i] = 0;
 
         //each neighbor contributes 1 to its class
-        for (int i = 0; i < numberNeighbors; i++)
-            frequency[records.get(id[i]).className - 1] += 1;
+        for (int i = 0; i < numberNeighbors; i++) {
+            if (id[i] >= records.size()) {
+                System.err.println("Error: ID index " + id[i] + " is out of bounds for records list of size " + records.size());
+                continue; // Skip this invalid index
+            }
+
+            // --- FIX: Handle class names 0 and 1 directly ---
+            int classIndex = records.get(id[i]).className;
+            if (classIndex >= 0 && classIndex < numberClasses) {
+                frequency[classIndex] += 1; // Access frequency[0] or frequency[1]
+            } else {
+                System.err.println("Error: Invalid class name " + classIndex + " at record ID " + id[i]);
+            }
+        }
 
         //find majority class
         int maxIndex = 0;
@@ -210,19 +243,29 @@ public class NearestNeighbor {
             if (frequency[i] > frequency[maxIndex])
                 maxIndex = i;
 
-        return maxIndex + 1;
+        // --- FIX: Return the index itself (0 or 1), not index + 1 ---
+        return maxIndex;
     }
 
     /*************************************************************************/
 
-    //Method finds Euclidean distance between two points
     private double distance(double[] u, double[] v) {
-        double distance = 0;
+        // Handle empty vectors to avoid division by zero
+        if (u.length == 0) {
+            return 0.0;
+        }
 
-        for (int i = 0; i < u.length; i++)
-            distance = distance + (u[i] - v[i]) * (u[i] - v[i]);
+        int mismatches = 0;
+        for (int i = 0; i < u.length; i++) {
+            // Check for a mismatch at each position
+            if (u[i] != v[i]) {
+                mismatches++;
+            }
+        }
 
-        distance = Math.sqrt(distance);
+        // Calculate the distance as: number of mismatches / length
+        // Cast mismatches to double to ensure floating-point division
+        double distance = mismatches / (double) u.length;
 
         return distance;
     }
@@ -231,6 +274,10 @@ public class NearestNeighbor {
 
     //Method validates classifier using validation record and returns 1(error) or 0(no error)
     public int validate() throws IOException {
+        if (validationRecord == null) {
+            throw new IOException("Validation record is null. Was skipIndex set correctly?");
+        }
+
         //read attributes
         double[] attributeArray = validationRecord.attributes;
 
@@ -252,9 +299,10 @@ public class NearestNeighbor {
 
     /************************************************************************/
 
-    private static <T,R> R applyFunction(T value, Function<T,R> function){
+    private static <T, R> R applyFunction(T value, Function<T, R> function) {
         return function.apply(value);
     }
 
 }
+
 
