@@ -6,10 +6,8 @@ import java.util.*;
 import java.util.function.Function;
 
 //Program tests nearest neighbor classifier in a specific application
-public class NearestNeighborTester {
 
-    //number of nearest neighbors
-    private static final int NEIGHBORS = 6;
+public class NearestNeighborTester {
 
     //Main method
     public static void main(String[] args) throws IOException {
@@ -20,7 +18,7 @@ public class NearestNeighborTester {
         //absolute filepath
         System.out.print("Enter absolute path to directory: ");
         String directory_path = scanner.nextLine();
-        if(!new File(directory_path).exists() || !new File(directory_path).isDirectory()){
+        if (!new File(directory_path).exists() || !new File(directory_path).isDirectory()) {
             System.out.print("Does not exist or is not a directory");
             System.exit(1);
         }
@@ -29,14 +27,14 @@ public class NearestNeighborTester {
         //gather training and test files
         System.out.print("Enter training file name: ");
         String trainingfile = scanner.nextLine();
-        if(!new File(directory_path + trainingfile).exists()){
+        if (!new File(directory_path + trainingfile).exists()) {
             System.out.print("File does not exist");
             System.exit(1);
         }
         String trainingfile_converted = trainingfile + "_converted";
         System.out.print("Enter test file name: ");
         String testfile = scanner.nextLine();
-        if(!new File(directory_path + testfile).exists()){
+        if (!new File(directory_path + testfile).exists()) {
             System.out.print("File does not exist");
             System.exit(1);
         }
@@ -48,43 +46,57 @@ public class NearestNeighborTester {
 
 
         //preprocess files
-        convertTrainingFile(directory_path + trainingfile, directory_path + trainingfile_converted);
-        convertTestFile(directory_path + testfile, directory_path + testfile_converted);
         int numberRecords = getNumberRecords(directory_path + trainingfile);
-        int errors = 0;
-        double startClock = System.nanoTime();
-        for (int skip = 0; skip < numberRecords; skip++) {
-            //construct nearest neighbor classifier
-            NearestNeighbor classifier = new NearestNeighbor();
 
-            //set skip index
-            classifier.setSkipIndex(skip);
+        int minimumError = Integer.MAX_VALUE;
+        int bestK = Integer.MAX_VALUE;
+        for (int NEIGHBORS = 0; NEIGHBORS < numberRecords; NEIGHBORS++) {
+            double startClock = System.nanoTime();
+            convertTrainingFile(directory_path + trainingfile, directory_path + trainingfile_converted);
+            convertTestFile(directory_path + testfile, directory_path + testfile_converted);
 
-            //load training data
-            classifier.loadTrainingData(directory_path + trainingfile_converted);
+            int errors = 0;
+            for (int skip = 0; skip < numberRecords; skip++) {
+                //construct nearest neighbor classifier
+                NearestNeighbor classifier = new NearestNeighbor();
 
-            //set nearest neighbors
-            classifier.setParameters(NEIGHBORS);
+                //set skip index
+                classifier.setSkipIndex(skip);
+
+                //load training data
+                classifier.loadTrainingData(directory_path + trainingfile_converted);
+
+                //set nearest neighbors
+                //number of nearest neighbors
+
+                classifier.setParameters(NEIGHBORS);
 
 
-            //classify test data
-            classifier.classifyData(directory_path + testfile_converted, directory_path + testfile_classified_original);
+                //classify test data
+                classifier.classifyData(directory_path + testfile_converted, directory_path + testfile_classified_original);
 
-            //postprocess files
-            convertClassFile(directory_path + testfile_classified_original, directory_path + testfile_classified);
+                //postprocess files
+                convertClassFile(directory_path + testfile_classified_original, directory_path + testfile_classified);
 
-            //validate classfier
-            errors += classifier.validate();
+                //validate classfier
+                errors += classifier.validate();
+            }
+            double endClock = System.nanoTime();
+
+            // System.out.println("Number of errors: " + (100.0 * errors / numberRecords) + "%");
+            if(errors < minimumError){
+                minimumError = errors;
+                bestK = NEIGHBORS;
+            }
+            System.out.print("k" + NEIGHBORS + " Error rate: " + errors + "/" + numberRecords + " = " + (errors / (float) numberRecords) * 100 + "%");
+            System.out.println(" (" + (endClock - startClock) / 1000000000.0 + " seconds)");
         }
-        double endClock = System.nanoTime();
-
-        // System.out.println("Number of errors: " + (100.0 * errors / numberRecords) + "%");
-        System.out.print("Error rate: " + errors + "/" + numberRecords + " = " + (errors / (float) numberRecords) * 100 + "%");
-        System.out.println(" (" + (endClock - startClock) / 1000000000.0 + " seconds)");
-
+        System.out.println("Best k: " + bestK);
         //clean
         System.out.println("Clean? y/n");
-        if(scanner.nextLine().equalsIgnoreCase("y")){
+        if (scanner.nextLine().
+
+                equalsIgnoreCase("y")) {
             System.out.print("Cleaning up");
             Files.deleteIfExists(new File(directory_path + trainingfile_converted).toPath());
             System.out.print(".");
@@ -166,6 +178,7 @@ public class NearestNeighborTester {
             default -> throw new IllegalArgumentException("Invalid attribute: " + x);
         }) + " ");
     }
+
     private static void writeClasses_to_File(Scanner inFile, PrintWriter outFile, int numberRecords) {
         outFile.print(applyFunction(inFile.next(), x -> switch (x) {
             case "low" -> 1;
