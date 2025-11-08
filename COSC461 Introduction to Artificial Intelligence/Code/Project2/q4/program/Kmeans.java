@@ -2,6 +2,7 @@ package Project2.q4.program;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.Function;
 
 //K-means clustering class
 public class Kmeans {
@@ -52,19 +53,22 @@ public class Kmeans {
 
             records[i] = Arrays.stream(allRecords.get(i).split(" ")).mapToDouble(Double::parseDouble).toArray();
             //records[i][2] = records[i][2] / 10.0;
-//            for (int j = 0; j < records[i].length; j++) {
-//                switch(j){
-//                    case 0:
-//                        System.out.print("X: " + records[i][j] + " ");
-//                        break;
-//                    case 1:
-//                        System.out.print("Y: " + records[i][j] + " ");
-//                        break;
-//                    case 2:
-//                        System.out.print("Z: " + records[i][j] + " ");
-//                        break;
-//                }
-//            }
+            for (int j = 0; j < records[i].length; j++) {
+                switch(j){
+                    // y = (x-a)/(b-a)
+                    case 0:
+                        records[i][j] = doFun(records[i][j], x -> (x-20) / (100 - 20));
+                        break;
+                    case 1:
+                        records[i][j] = doFun(records[i][j], x -> (x-20) / (100 - 20));
+                        break;
+                    case 2:
+                        records[i][j] = doFun(records[i][j], x -> (x-500) / (900-500));
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Invalid attribute: " + j);
+                }
+            }
 //            System.out.println();
         }
         numberRecords = records.length;
@@ -140,20 +144,44 @@ public class Kmeans {
     /*************************************************************************/
 
     //Method initializes centroids of clusters
+//    private void initializeCentroids() {
+//        //create array of centroids
+//        centroids = new double[numberClusters][numberAttributes];
+//
+//        //for each cluster
+//        for (int i = 0; i < numberClusters; i++) {
+//            //randomly pick a record
+//            int index = rand.nextInt(numberRecords);
+//
+//            //use the record as centroid
+//            for (int j = 0; j < numberAttributes; j++) {
+//                centroids[i][j] = records[index][j];
+//            }
+//
+//        }
+//    }
+    // Method initializes centroids of clusters by picking K unique records
     private void initializeCentroids() {
-        //create array of centroids
+        // create array of centroids
         centroids = new double[numberClusters][numberAttributes];
 
-        //for each cluster
-        for (int i = 0; i < numberClusters; i++) {
-            //randomly pick a record
-            int index = rand.nextInt(numberRecords);
+        // Create a list of all record indices
+        List<Integer> indices = new ArrayList<>(numberRecords);
+        for (int i = 0; i < numberRecords; i++) {
+            indices.add(i);
+        }
 
-            //use the record as centroid
+        // Shuffle the list using your seeded random generator
+        Collections.shuffle(indices, rand);
+
+        // Take the first K unique indices from the shuffled list
+        for (int i = 0; i < numberClusters; i++) {
+            int index = indices.get(i);
+
+            // use the record as centroid
             for (int j = 0; j < numberAttributes; j++) {
                 centroids[i][j] = records[index][j];
             }
-
         }
     }
 
@@ -287,11 +315,12 @@ public class Kmeans {
 
     public double calculateSSE() {
         double sse = 0;
-        for (int i = 0; i < numberClusters; i++) {
-            //System.out.println("C" + (i+1) + ": " + centroids[i][0]  + " " + centroids[i][1] + " " + centroids[i][2]);
+        for (int i = 0; i < centroids.length; i++) {
+           // System.out.println("C" + (i+1) + ": " + centroids[i][0]  + " " + centroids[i][1] + " " + centroids[i][2]);
             for (int j = 0; j < numberRecords; j++) {
                 if (clusters[j] == i) {
-                    sse += Math.pow(distance(records[j], centroids[i]), 2);
+
+                    sse += distance(records[j], centroids[i]);
                     // System.out.println("R" + (j+1) + ": " + records[j][0]  + " " + records[j][1] + " " + records[j][2] + " " + (i+1));
                 }
             }
@@ -302,5 +331,8 @@ public class Kmeans {
 
     /*************************************************************************/
 
+    private <T, R> R doFun(T value, Function<T, R> function) {
+        return function.apply(value);
+    }
 
 }

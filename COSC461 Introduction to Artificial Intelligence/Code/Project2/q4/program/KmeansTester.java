@@ -42,7 +42,7 @@ public class KmeansTester {
         this.inputFile = directoryPath + "file7.txt";
         this.outputFile = directoryPath + "outputfile";
         this.numberClusters = 3;
-        this.numberIterations = 100;
+        this.numberIterations = 1000;
         this.seed = 1;
         this.bestSSE = Double.MAX_VALUE;
 
@@ -90,23 +90,30 @@ public class KmeansTester {
         t.addOption(t.getRootMenu(), "Find SSE", "Find the best SSE", t -> {
             try {
                 //iface.out("Error rate: " + errors + "/" + numberRecords + " = " + (errors / (float) numberRecords) * 100 + "%");
+                this.bestSSE = Double.MAX_VALUE;
                 double currentSSE = simpleRun();
                 int bestClusterSize = 0;
-                numberClusters = 1;
-                while (numberClusters <= numberRecords) {
+                this.seed = 1;
+                numberClusters = 10;
+                int clusterRange = numberRecords;
+                while (numberClusters <= clusterRange) {
+                    this.seed = numberClusters;
                     currentSSE = simpleRun();
-                    t.out("SSE: " + currentSSE + " with " + numberClusters + " clusters");
-                    numberClusters += 1;
+                    t.out("SSE: " + currentSSE + " with " + numberClusters + " clusters" + " (seed: " + this.seed + ")");
                     if (currentSSE < bestSSE) {
-                        if (currentSSE / bestSSE < 0.01) {
+                        if (bestSSE-currentSSE >= 0.2) {
+                            //System.out.println(bestSSE - currentSSE);
                             bestSSE = currentSSE;
                             bestClusterSize = numberClusters;
                         }
                     }
+                    numberClusters += 10;
                 }
-                t.out("Best SSE: " + bestSSE + " with " + bestClusterSize + " clusters");
                 numberClusters = bestClusterSize;
+                this.seed = bestClusterSize;
                 simpleRun();
+                t.out("Best SSE: " + bestSSE + " with " + bestClusterSize + " clusters" + " (seed: " + this.seed + ")");
+
                 // t.out("Best SSE: " + sseList.stream().min(Double::compareTo).get() + " with " + numberClusters + " clusters");
             } catch (IOException e) {
             }
@@ -120,6 +127,8 @@ public class KmeansTester {
         initializeOptions();
         t.start();
     }
+
+
 
     void main() {
         KmeansTester tester = new KmeansTester();
