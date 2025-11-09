@@ -1,7 +1,0 @@
-6
-zero
-zero
-one
-one
-one
-one

@@ -100,7 +100,7 @@ public class KmeansTester {
                         bestClusterSize = numberClusters;
                     }
                 }
-                numberClusters += 10;
+                numberClusters += 5;
             }
             numberClusters = bestClusterSize;
             this.seed = bestClusterSize;
