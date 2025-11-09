@@ -35,7 +35,7 @@ public class NearestNeighbor {
 
     //Constructor of NearestNeighbor
     public NearestNeighbor() {
-        //initial data is empty
+        //initial data
         numberRecords = 0;
         numberAttributes = 0;
         numberClasses = 0;
@@ -65,26 +65,21 @@ public class NearestNeighbor {
             //create attribute array
             double[] attributeArray = new double[numberAttributes];
 
-
-            // --- FIX: Read 256 attributes from one line ---
             //read attribute values
             for (int j = 0; j < numberAttributes; j++) {
                 attributeArray[j] = inFile.nextDouble();
             }
-            // --- FIX: Removed the nested loop and debug prints ---
 
             //read class name
-            // --- FIX: Read class as an int directly ---
             int className = inFile.nextInt();
             inFile.nextLine(); // Consume the rest of the line
 
-            // --- FIX: Removed debug print ---
+            // debug print
 //            System.out.println(className);
 //            if (className < 1 || className > numberClasses)
 //                throw new RuntimeException("Invalid class name: " + className);
 
             //create record
-            // --- FIX: Use the int className directly ---
             Record record = new Record(attributeArray, className);
 
             if (i == skipIndex) {
@@ -100,21 +95,14 @@ public class NearestNeighbor {
             }
         }
 
-        // --- FIX: Only adjust record count and check for skips if we are in validation mode ---
-        // (i.e., skipIndex is a valid index).
-        // For classification, skipIndex will be Integer.MIN_VALUE, and we want to load all records.
         if (skipIndex >= 0) {
             if (actualSkips == 0) {
-                // This should no longer happen, but it's good practice to keep.
                 throw new RuntimeException("Zero records skipped for validation (skipIndex=" + skipIndex + ")");
             }
-            // Decrement record count *only* for validation, as one record was held out
             numberRecords -= 1;
         }
-        // If not in validation mode (skipIndex < 0), numberRecords remains the full count,
-        // and all records are added to the 'records' list.
 
-
+        // close file
         inFile.close();
     }
 
@@ -125,6 +113,7 @@ public class NearestNeighbor {
         this.numberNeighbors = numberNeighbors;
     }
 
+    //method sets index of record to skip for validation
     public void setSkipIndex(int skipIndex) {
         this.skipIndex = skipIndex;
     }
@@ -166,6 +155,7 @@ public class NearestNeighbor {
         }
 
 
+        //close files
         inFile.close();
         outFile.close();
     }
@@ -228,7 +218,6 @@ public class NearestNeighbor {
                 continue; // Skip this invalid index
             }
 
-            // --- FIX: Handle class names 0 and 1 directly ---
             int classIndex = records.get(id[i]).className;
             if (classIndex >= 0 && classIndex < numberClasses) {
                 frequency[classIndex] += 1; // Access frequency[0] or frequency[1]
@@ -243,7 +232,6 @@ public class NearestNeighbor {
             if (frequency[i] > frequency[maxIndex])
                 maxIndex = i;
 
-        // --- FIX: Return the index itself (0 or 1), not index + 1 ---
         return maxIndex;
     }
 
@@ -299,6 +287,7 @@ public class NearestNeighbor {
 
     /************************************************************************/
 
+    //Helper method to apply a function to a value
     private static <T, R> R applyFunction(T value, Function<T, R> function) {
         return function.apply(value);
     }

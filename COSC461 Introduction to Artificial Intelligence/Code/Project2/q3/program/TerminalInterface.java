@@ -10,10 +10,6 @@ import java.util.function.Consumer;
  */
 public class TerminalInterface {
 
-    /**
-     * Represents a node in the menu. Can be a clickable action (OPTION)
-     * or a link to a sub-menu (CATEGORY).
-     */
     public static class MenuNode {
         public enum NodeType { OPTION, CATEGORY }
 

@@ -6,19 +6,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections; // Import for shuffling
+import java.util.Collections;
 import java.util.function.Consumer;
 import java.util.function.Function;
-// Import the ImagePreset enum, as this class now handles loading presets
 import Project2.q2.program.ImagePreset;
 
-/**
- * Controller class for the MakeImages application.
- * Holds the application state (paths, parameters) and connects the
- * TerminalInterface (View) to the Image (Model).
- */
 public class MakeImages {
-    // --- Application State ---
+    // app vars
     private String path;
     private String inFile;
     private String outFile;
@@ -27,8 +21,6 @@ public class MakeImages {
     public double shearFactor;
     public double scaleX;
     public double scaleY;
-
-    // The Image (Model) is now an instance, not a nested class
     private Image image;
 
     public Image getImage() {
@@ -43,9 +35,6 @@ public class MakeImages {
         this.path = path;
     }
 
-    /**
-     * Constructor for MakeImages.
-     */
     public MakeImages() {
         this.image = new Image(); // Create an instance of the external Image class
         this.path = "/Users/nicholas/IdeaProjects/RemoteDevelopment/COSC461 Introduction to Artificial Intelligence/Code/Project2/q2/program/Data/"; // Example: relative path
@@ -74,25 +63,16 @@ public class MakeImages {
         return t;
     }
 
-    /**
-     * Main method to set up all menu options.
-     * This is now a simple coordinator that calls helper methods for each category.
-     */
     public void initializeOptions(TerminalInterface t) {
         TerminalInterface.MenuNode root = t.getRootMenu();
 
         setupFileMenu(t, root);
         setupImageMenu(t, root);
         setupDistortMenu(t, root);
-        setupBatchMenu(t, root); // Replaced old batch logic
+        setupBatchMenu(t, root);
         setupProgramMenu(t, root);
     }
 
-    // --- Private UI Helper Methods ---
-
-    /**
-     * Creates all options for the "File" menu category.
-     */
     private void setupFileMenu(TerminalInterface t, TerminalInterface.MenuNode root) {
         TerminalInterface.MenuNode fileMenu = t.addCategory("File", root);
         t.addOption(fileMenu, "Set Path", "Set the path to the images directory", (iface) -> {
@@ -125,9 +105,6 @@ public class MakeImages {
         });
     }
 
-    /**
-     * Creates all options for the "Image" menu category.
-     */
     private void setupImageMenu(TerminalInterface t, TerminalInterface.MenuNode root) {
         TerminalInterface.MenuNode imageMenu = t.addCategory("Image", root);
         t.addOption(imageMenu, "Display Image", "Display the current image in the console", (iface) -> {
@@ -241,22 +218,15 @@ public class MakeImages {
     }
 
     /**
-     * Helper method to write the file header. Overwrites any existing file.
-     * Format: RecordCount Attributes Classes
+     * Helper method to write the file header. Overwrites.
      */
     private void fileWriteTrainingHeader(String outFile, int recordCount) throws IOException {
-        // 'new FileWriter(outFile)' (or false) overwrites the file
         try (PrintWriter writer = new PrintWriter(new FileWriter(outFile, false))) {
-            // --- FIX: Header must be [records] [attributes] [classes] ---
-            // 256 attributes (16x16), 2 classes (0 or 1)
             writer.println(recordCount + " " + 256 + " " + 2);
-            writer.println(); // Add a blank line for readability
+            writer.println();
         }
     }
 
-    /**
-     * Re-usable helper method to run the full batch generation process.
-     */
     private void runBatchGeneration(TerminalInterface iface, String fileName, int numZeros, int numOnes, String setType) {
         iface.out("--- Batch Generation Parameters ---");
         double maxShear = iface.inDouble("Max Shear (e.g., 0.4)?");
@@ -267,7 +237,6 @@ public class MakeImages {
 
         String fullPath = MakeImages.this.getPath() + fileName;
 
-        // --- Create a shuffled list of labels ---
         ArrayList<String> labels = new ArrayList<>();
         for (int i = 0; i < numZeros; i++) labels.add("zero");
         for (int i = 0; i < numOnes; i++) labels.add("one");
@@ -283,37 +252,37 @@ public class MakeImages {
         long startTime = System.currentTimeMillis();
 
         try {
-            // 1. Write the header (this overwrites the file)
+
             fileWriteTrainingHeader(fullPath, totalRecords);
 
-            // 2. Run Loop and append records
+
             for (int i = 0; i < totalRecords; i++) {
                 String label = labels.get(i);
 
-                // Load base image
+
                 if (label.equals("zero")) {
                     MakeImages.this.image.setData(ImagePreset.ZERO.getDeepCopy());
                 } else {
                     MakeImages.this.image.setData(ImagePreset.ONE.getDeepCopy());
                 }
 
-                // Strengthen the '0' *before* destructive transforms
+
                 if (label.equals("zero")) {
                     MakeImages.this.image.applyDilation();
                 }
 
-                // Generate random parameters
+
                 double randShear = (Math.random() * 2 * maxShear) - maxShear;
                 double randScaleX = minScale + (Math.random() * (maxScale - minScale));
                 double randScaleY = minScale + (Math.random() * (maxScale - minScale));
                 double randJitterRate = Math.random() * maxJitterRate;
 
-                // Apply transformations (Robust Order)
+
                 MakeImages.this.image.applyJitter(randJitterRate, jitterMag);
                 MakeImages.this.image.applyScale(randScaleX, randScaleY);
                 MakeImages.this.image.applyShear(randShear);
 
-                // Save record (image + label)
+
                 if (setType.equals("TRAIN")) {
                     MakeImages.this.image.fileWriteRecord(fullPath, label);
                 }else if (setType.equals("TEST")){
@@ -381,8 +350,6 @@ public class MakeImages {
             iface.stop();
         });
     }
-
-    // Unused method has been removed
 }
 
 

@@ -125,7 +125,6 @@ public class NearestNeighbor {
         outFile.println(numberRecords);
 
         //for each record
-
         for (int i = 0; i < numberRecords; i++) {
 
             //create attribute array
@@ -144,7 +143,7 @@ public class NearestNeighbor {
             outFile.println(className);
         }
 
-
+        // close files
         inFile.close();
         outFile.close();
     }
@@ -240,11 +239,10 @@ public class NearestNeighbor {
         //find class predicted by classifier
         int predictedClass = classify(attributeArray);
 
-        //error if predicted and actual classes do not match
         if (predictedClass != actualClass)
+            // return 1 if error
             return 1;
-
-        //find and print error rate
+        // otherwise, return 0
         return 0;
 
 
@@ -252,6 +250,8 @@ public class NearestNeighbor {
 
     /************************************************************************/
 
+
+    //lambda function to apply a function<t,r> to a value t using function.apply
     private static <T,R> R applyFunction(T value, Function<T,R> function){
         return function.apply(value);
     }

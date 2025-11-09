@@ -74,44 +74,61 @@ public class BayesTester {
     }
 
     private void setupFileMenu(TerminalInterface.MenuNode root) {
+        terminal.addOption(root, "Simple Run", "Quickly run the program with nothing extra", (iface) -> {
+            configureDirectory(iface);
+            configureTrainingFile(iface);
+            setTestFile(iface);
+            convertFiles(iface);
+            runValidation(iface);
+            classifyTestFile(iface);
+            closeApp(iface);
+
+        });
 
         TerminalInterface.MenuNode fileMenu = terminal.addCategory("File Settings", root);
 
-        terminal.addOption(fileMenu, "Set Data Directory", "Set the absolute path to your Data/ folder", (iface) -> {
-            iface.out("Current directory: " + this.directory_path);
-            String newPath = iface.inString("Enter new absolute path (must end with /):");
-            if (!newPath.endsWith("/")) {
-                newPath += "/";
-            }
-            if (!new File(newPath).exists() || !new File(newPath).isDirectory()) {
-                iface.out("ERROR: Path does not exist or is not a directory.");
-            } else {
-                this.directory_path = newPath;
-                iface.out("Data directory set to: " + this.directory_path);
-            }
-            setupFileReferences();
-        });
+        terminal.addOption(fileMenu, "Set Data Directory", "Set the absolute path to your Q2  folder", this::configureDirectory);
+        terminal.addOption(fileMenu, "Set Training File", "Set the name of the training file", this::configureTrainingFile);
+        terminal.addOption(fileMenu, "Set Test File", "Set the name of the test file", this::setTestFile);
+        terminal.addOption(fileMenu, "Set File Mode", "Set the filename format", this::setFileMode);
 
-        terminal.addOption(fileMenu, "Set Training File", "Set the name of the training file", (iface) -> {
-            iface.out("Current training file: " + this.trainingFile);
-            this.trainingFile = iface.inString("Enter new training file name (e.g., file1.txt):");
-            iface.out("Training file set to: " + this.trainingFile);
-            setupFileReferences();
-        });
+    }
 
-        terminal.addOption(fileMenu, "Set Test File", "Set the name of the test file", (iface) -> {
-            iface.out("Current test file: " + testFile);
-            testFile = iface.inString("Enter new test file name (e.g., file2.txt):");
-            iface.out("Test file set to: " + testFile);
-            setupFileReferences();
-        });
-        terminal.addOption(fileMenu, "Set File Mode", "Set the filename format", (iface) -> {
-            iface.out("Current file mode: " + this.fileMode);
-            this.fileMode = Integer.parseInt(iface.inString("Enter new file mode\n[0] = suffix\n[1] = prefix"));
-            iface.out("File mode set to: " + this.fileMode);
-            setupFileReferences();
-        });
+    private void setFileMode(TerminalInterface iface) {
+        iface.out("Current file mode: " + this.fileMode);
+        this.fileMode = Integer.parseInt(iface.inString("Enter new file mode\n[0] = suffix\n[1] = prefix"));
+        iface.out("File mode set to: " + this.fileMode);
+        setupFileReferences();
+        convertFiles(iface);
+    }
 
+    private void setTestFile(TerminalInterface iface) {
+        iface.out("Current test file: " + testFile);
+        testFile = iface.inString("Enter new test file name (e.g., file2.txt):");
+        iface.out("Test file set to: " + testFile);
+        setupFileReferences();
+    }
+
+    private void configureTrainingFile(TerminalInterface iface) {
+        iface.out("Current training file: " + this.trainingFile);
+        this.trainingFile = iface.inString("Enter new training file name (e.g., file1.txt):");
+        iface.out("Training file set to: " + this.trainingFile);
+        setupFileReferences();
+    }
+
+    private void configureDirectory(TerminalInterface iface) {
+        iface.out("Current directory: " + this.directory_path);
+        String newPath = iface.inString("Enter new absolute path to Q3 (must end with /):");
+        if (!newPath.endsWith("/")) {
+            newPath += "/";
+        }
+        if (!new File(newPath).exists() || !new File(newPath).isDirectory()) {
+            iface.out("ERROR: Path does not exist or is not a directory.");
+        } else {
+            this.directory_path = newPath;
+            iface.out("Data directory set to: " + this.directory_path);
+        }
+        setupFileReferences();
     }
 
     private void setupActionMenu(TerminalInterface.MenuNode root) {
@@ -119,117 +136,121 @@ public class BayesTester {
         TerminalInterface.MenuNode actionMenu = terminal.addCategory("Classifier Actions", root);
 
 
-        terminal.addOption(actionMenu, "Convert Files", "Convert data files to numeric format", (iface) -> {
-            iface.out("Converting files...");
-            try {
-                if (!new File(fullTrainingPath).exists()) {
-                    iface.out("ERROR: Training file not found: " + fullTrainingPath);
-                    return;
-                }
-                if (!new File(fullTestPath).exists()) {
-                    iface.out("ERROR: Test file not found: " + fullTestPath);
-                    return;
-                }
+        terminal.addOption(actionMenu, "Convert Files", "Convert data files to numeric format", this::convertFiles);
+        terminal.addOption(actionMenu, "Run Validation", "Run leave-one-out validation on training file", this::runValidation);
+        terminal.addOption(actionMenu, "Classify Test File", "Classify the unknown test file", this::classifyTestFile);
+    }
 
-                convertTrainingFile(fullTrainingPath, convertedTrainingPath);
-                iface.out("Training file converted: " + convertedTrainingPath);
-                convertTestFile(fullTestPath, convertedTestPath);
-                iface.out("Test file converted: " + convertedTestPath);
-                iface.out("Conversion complete.");
+    private void classifyTestFile(TerminalInterface iface) {
+        iface.out("--- Classifying Test File ---");
+        try {
 
-            } catch (Exception e) {
-                iface.out("ERROR during file conversion: " + e.getMessage());
-                e.printStackTrace();
+            if (!new File(convertedTrainingPath).exists() || !new File(convertedTestPath).exists()) {
+                iface.out("ERROR: Converted files not found.");
+                iface.out("Please run '1. Convert Files' first.");
+                return;
             }
-        });
 
-        terminal.addOption(actionMenu, "Run Validation", "Run leave-one-out validation on training file", (iface) -> {
-            iface.out("--- Running Leave-One-Out Validation ---");
+            Bayes finalClassifier = new Bayes();
+            finalClassifier.setSkipIndex(Integer.MIN_VALUE); // Use ALL training data
+            finalClassifier.loadTrainingData(convertedTrainingPath);
+            finalClassifier.computeProbability();
+            //finalClassifier.setParameters(this.k_neighbors);
 
-            try {
-                if (!new File(this.convertedTrainingPath).exists()) {
-                    iface.out("ERROR: Converted training file not found.");
-                    iface.out("Please run '1. Convert Files' first.");
-                    return;
-                }
+            finalClassifier.classifyData(this.convertedTestPath, this.classifiedOrigPath);
+            convertClassFile(classifiedOrigPath, classifiedPath);
 
-                int numberRecords = getNumberRecords(fullTrainingPath);
-                int errors = 0;
-                double startClock = System.nanoTime();
+            iface.out("Classification complete.");
+            iface.out("Output file: " + classifiedPath);
 
-                iface.out("Validating on " + numberRecords + " records");
+        } catch (Exception e) {
+            iface.out("ERROR during classification: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
-                for (int skip = 0; skip < numberRecords; skip++) {
-                    Bayes classifier = new Bayes();
-                    classifier.setSkipIndex(skip);
-                    classifier.loadTrainingData(convertedTrainingPath);
-                    classifier.computeProbability();
-                    //classifier.setParameters(this.k_neighbors);
+    private void runValidation(TerminalInterface iface) {
+        iface.out("--- Running Leave-One-Out Validation ---");
 
-                    errors += classifier.validate();
-
-                    if ((skip + 1) % 5 == 0 || skip == numberRecords - 1) {
-                        iface.out("...validated " + (skip + 1) + " of " + numberRecords);
-                    }
-                }
-                double endClock = System.nanoTime();
-
-                iface.out("--- Validation Complete ---");
-                //iface.out("Number of neighbors (K): " + this.k_neighbors);
-                iface.out("Error rate: " + errors + "/" + numberRecords + " = " + (errors / (float) numberRecords) * 100 + "%");
-                iface.out("Time taken: " + (endClock - startClock) / 1000000000.0 + " seconds");
-
-            } catch (Exception e) {
-                iface.out("ERROR during validation: " + e.getMessage());
-                e.printStackTrace();
+        try {
+            if (!new File(this.convertedTrainingPath).exists()) {
+                iface.out("ERROR: Converted training file not found.");
+                iface.out("Please run '1. Convert Files' first.");
+                return;
             }
-        });
 
-        terminal.addOption(actionMenu, "Classify Test File", "Classify the unknown test file", (iface) -> {
-            iface.out("--- Classifying Test File ---");
-            try {
+            int numberRecords = getNumberRecords(fullTrainingPath);
+            int errors = 0;
+            double startClock = System.nanoTime();
 
-                if (!new File(convertedTrainingPath).exists() || !new File(convertedTestPath).exists()) {
-                    iface.out("ERROR: Converted files not found.");
-                    iface.out("Please run '1. Convert Files' first.");
-                    return;
+            iface.out("Validating on " + numberRecords + " records");
+
+            for (int skip = 0; skip < numberRecords; skip++) {
+                Bayes classifier = new Bayes();
+                classifier.setSkipIndex(skip);
+                classifier.loadTrainingData(convertedTrainingPath);
+                classifier.computeProbability();
+                //classifier.setParameters(this.k_neighbors);
+
+                errors += classifier.validate();
+
+                if ((skip + 1) % 5 == 0 || skip == numberRecords - 1) {
+                    iface.out("...validated " + (skip + 1) + " of " + numberRecords);
                 }
-
-                Bayes finalClassifier = new Bayes();
-                finalClassifier.setSkipIndex(Integer.MIN_VALUE); // Use ALL training data
-                finalClassifier.loadTrainingData(convertedTrainingPath);
-                finalClassifier.computeProbability();
-                //finalClassifier.setParameters(this.k_neighbors);
-
-                finalClassifier.classifyData(this.convertedTestPath, this.classifiedOrigPath);
-                convertClassFile(classifiedOrigPath, classifiedPath);
-
-                iface.out("Classification complete.");
-                iface.out("Output file: " + classifiedPath);
-
-            } catch (Exception e) {
-                iface.out("ERROR during classification: " + e.getMessage());
-                e.printStackTrace();
             }
-        });
+            double endClock = System.nanoTime();
+
+            iface.out("--- Validation Complete ---");
+            //iface.out("Number of neighbors (K): " + this.k_neighbors);
+            iface.out("Error rate: " + errors + "/" + numberRecords + " = " + (errors / (float) numberRecords) * 100 + "%");
+            iface.out("Time taken: " + (endClock - startClock) / 1000000000.0 + " seconds");
+
+        } catch (Exception e) {
+            iface.out("ERROR during validation: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void convertFiles(TerminalInterface iface) {
+        iface.out("Converting files...");
+        try {
+            if (!new File(fullTrainingPath).exists()) {
+                iface.out("ERROR: Training file not found: " + fullTrainingPath);
+                return;
+            }
+            if (!new File(fullTestPath).exists()) {
+                iface.out("ERROR: Test file not found: " + fullTestPath);
+                return;
+            }
+
+            convertTrainingFile(fullTrainingPath, convertedTrainingPath);
+            iface.out("Training file converted: " + convertedTrainingPath);
+            convertTestFile(fullTestPath, convertedTestPath);
+            iface.out("Test file converted: " + convertedTestPath);
+            iface.out("Conversion complete.");
+
+        } catch (Exception e) {
+            iface.out("ERROR during file conversion: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void setupFileReferences() {
-        this.fullTrainingPath = this.directory_path + this.trainingFile;
-        this.fullTestPath = this.directory_path + this.testFile;
-        switch(fileMode){
+        this.fullTrainingPath = this.directory_path + "program/Data/" +  this.trainingFile;
+        this.fullTestPath = this.directory_path + "program/Data/" +  this.testFile;
+        switch (fileMode) {
             case 0:
-                this.convertedTrainingPath = this.directory_path + this.trainingFile + CONVERTED_SUFFIX;
-                this.convertedTestPath = this.directory_path + this.testFile + CONVERTED_SUFFIX;
-                this.classifiedOrigPath = this.directory_path + this.testFile + CLASSIFIED_ORIG_SUFFIX;
-                this.classifiedPath = this.directory_path + this.testFile + CLASSIFIED_SUFFIX;
+                this.convertedTrainingPath = this.directory_path + "output/" +  this.trainingFile + CONVERTED_SUFFIX;
+                this.convertedTestPath = this.directory_path + "output/" +  this.testFile + CONVERTED_SUFFIX;
+                this.classifiedOrigPath = this.directory_path + "output/" +  this.testFile + CLASSIFIED_ORIG_SUFFIX;
+                this.classifiedPath = this.directory_path + "output/" +  this.testFile + CLASSIFIED_SUFFIX;
                 break;
             case 1:
 
-                this.convertedTrainingPath = this.directory_path + CONVERTED_PREFIX + this.trainingFile;
-                this.convertedTestPath = this.directory_path + CONVERTED_PREFIX + this.testFile;
-                this.classifiedOrigPath =  this.directory_path + CLASSIFIED_ORIG_PREFIX + this.testFile;
-                this.classifiedPath =  this.directory_path + CLASSIFIED_PREFIX + this.testFile;
+                this.convertedTrainingPath = this.directory_path + "output/" +  CONVERTED_PREFIX + this.trainingFile;
+                this.convertedTestPath = this.directory_path + "output/" +  CONVERTED_PREFIX + this.testFile;
+                this.classifiedOrigPath = this.directory_path + "output/" +  CLASSIFIED_ORIG_PREFIX + this.testFile;
+                this.classifiedPath = this.directory_path  + "output/" +  CLASSIFIED_PREFIX + this.testFile;
                 break;
             default:
                 throw new RuntimeException("Invalid file mode: " + fileMode);
@@ -256,58 +277,82 @@ public class BayesTester {
         TerminalInterface.MenuNode paramsMenu = terminal.addCategory("Modify Parameters", programMenu);
 
         terminal.addOption(paramsMenu, "Set Converted Suffix", "Set the suffix for converted files", (iface) -> {
-            iface.out("Current suffix: " + this.CONVERTED_SUFFIX);
-            this.CONVERTED_SUFFIX = iface.inString("Enter new suffix (e.g., _converted.txt):");
-            iface.out("Converted suffix set to: " + this.CONVERTED_SUFFIX);
-            setupFileReferences();
+            setConvertedSuffix(iface);
         });
 
         terminal.addOption(paramsMenu, "Set Classified Suffix", "Set the suffix for classified files", (iface) -> {
-            iface.out("Current suffix: " + this.CLASSIFIED_SUFFIX);
-            this.CLASSIFIED_SUFFIX = iface.inString("Enter new suffix (e.g., _classified.txt):");
-            this.CLASSIFIED_ORIG_SUFFIX = "_classified_original.txt"; // Keep this one linked
-            iface.out("Classified suffix set to: " + this.CLASSIFIED_SUFFIX);
-            setupFileReferences();
+            setClassifiedSuffix(iface);
         });
         terminal.addOption(paramsMenu, "Set Converted Prefix", "Set the suffix for converted files", (iface) -> {
-            iface.out("Current suffix: " + this.CONVERTED_PREFIX);
-            this.CONVERTED_PREFIX = iface.inString("Enter new prefix (e.g., converted):");
-            iface.out("Converted prefix set to: " + this.CONVERTED_PREFIX);
-            setupFileReferences();
+            setConvertedPrefix(iface);
         });
 
         terminal.addOption(paramsMenu, "Set Classified Prefix", "Set the suffix for classified files", (iface) -> {
-            iface.out("Current prefix: " + this.CLASSIFIED_PREFIX);
-            this.CLASSIFIED_PREFIX = iface.inString("Enter new prefix (e.g., classified):");
-            this.CLASSIFIED_ORIG_PREFIX = "_orig"; // Keep this one linked
-            iface.out("Classified prefix set to: " + this.CLASSIFIED_PREFIX);
-            setupFileReferences();
+            setClassifiedPrefix(iface);
         });
 
         // --- End of new Sub-Menu ---
 
 
         terminal.addOption(programMenu, "Clean Up Files", "Delete generated _converted and _classified files", (iface) -> {
-            iface.out("Cleaning up intermediate files...");
-            try {
-                Files.deleteIfExists(new File(this.directory_path + this.trainingFile + CONVERTED_SUFFIX).toPath());
-                Files.deleteIfExists(new File(this.directory_path + this.testFile + CONVERTED_SUFFIX).toPath());
-                Files.deleteIfExists(new File(this.directory_path + this.testFile + CLASSIFIED_ORIG_SUFFIX).toPath());
-                Files.deleteIfExists(new File(this.directory_path + this.testFile + CLASSIFIED_SUFFIX).toPath());
-                Files.deleteIfExists(new File(this.directory_path + CONVERTED_PREFIX + this.trainingFile).toPath());
-                Files.deleteIfExists(new File(this.directory_path + CONVERTED_PREFIX + this.testFile).toPath());
-                Files.deleteIfExists(new File(this.directory_path + CLASSIFIED_PREFIX + this.testFile).toPath());
-                Files.deleteIfExists(new File(this.directory_path + CLASSIFIED_ORIG_PREFIX + this.testFile).toPath());
-                iface.out("Cleanup complete.");
-            } catch (IOException e) {
-                iface.out("Error during cleanup: " + e.getMessage());
-            }
+            cleanFiles(iface);
         });
 
         terminal.addOption(programMenu, "Exit", "Exit the application", (iface) -> {
-            iface.out("Goodbye!");
-            iface.stop();
+            closeApp(iface);
         });
+    }
+
+    private static void closeApp(TerminalInterface iface) {
+        iface.out("Goodbye!");
+        iface.stop();
+    }
+
+    private void cleanFiles(TerminalInterface iface) {
+        iface.out("Cleaning up intermediate files...");
+        try {
+            Files.deleteIfExists(new File(this.directory_path + this.trainingFile + CONVERTED_SUFFIX).toPath());
+            Files.deleteIfExists(new File(this.directory_path + this.testFile + CONVERTED_SUFFIX).toPath());
+            Files.deleteIfExists(new File(this.directory_path + this.testFile + CLASSIFIED_ORIG_SUFFIX).toPath());
+            Files.deleteIfExists(new File(this.directory_path + this.testFile + CLASSIFIED_SUFFIX).toPath());
+            Files.deleteIfExists(new File(this.directory_path + CONVERTED_PREFIX + this.trainingFile).toPath());
+            Files.deleteIfExists(new File(this.directory_path + CONVERTED_PREFIX + this.testFile).toPath());
+            Files.deleteIfExists(new File(this.directory_path + CLASSIFIED_PREFIX + this.testFile).toPath());
+            Files.deleteIfExists(new File(this.directory_path + CLASSIFIED_ORIG_PREFIX + this.testFile).toPath());
+            iface.out("Cleanup complete.");
+        } catch (IOException e) {
+            iface.out("Error during cleanup: " + e.getMessage());
+        }
+    }
+
+    private void setClassifiedPrefix(TerminalInterface iface) {
+        iface.out("Current prefix: " + this.CLASSIFIED_PREFIX);
+        this.CLASSIFIED_PREFIX = iface.inString("Enter new prefix (e.g., classified):");
+        this.CLASSIFIED_ORIG_PREFIX = "_orig"; // Keep this one linked
+        iface.out("Classified prefix set to: " + this.CLASSIFIED_PREFIX);
+        setupFileReferences();
+    }
+
+    private void setConvertedPrefix(TerminalInterface iface) {
+        iface.out("Current suffix: " + this.CONVERTED_PREFIX);
+        this.CONVERTED_PREFIX = iface.inString("Enter new prefix (e.g., converted):");
+        iface.out("Converted prefix set to: " + this.CONVERTED_PREFIX);
+        setupFileReferences();
+    }
+
+    private void setClassifiedSuffix(TerminalInterface iface) {
+        iface.out("Current suffix: " + this.CLASSIFIED_SUFFIX);
+        this.CLASSIFIED_SUFFIX = iface.inString("Enter new suffix (e.g., _classified.txt):");
+        this.CLASSIFIED_ORIG_SUFFIX = "_classified_original.txt"; // Keep this one linked
+        iface.out("Classified suffix set to: " + this.CLASSIFIED_SUFFIX);
+        setupFileReferences();
+    }
+
+    private void setConvertedSuffix(TerminalInterface iface) {
+        iface.out("Current suffix: " + this.CONVERTED_SUFFIX);
+        this.CONVERTED_SUFFIX = iface.inString("Enter new suffix (e.g., _converted.txt):");
+        iface.out("Converted suffix set to: " + this.CONVERTED_SUFFIX);
+        setupFileReferences();
     }
 
 

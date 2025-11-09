@@ -49,78 +49,85 @@ public class KmeansTester {
     }
 
     public void setInputFile() {
-        this.inputFile = directoryPath + t.inString("Enter input file name (e.g., file1.txt):");
+        this.inputFile = directoryPath + "program/Data/" + t.inString("Enter input file name (e.g., file1.txt):");
     }
 
     public void setDirectoryPath() {
-        this.directoryPath = t.inString("Enter directory path (end with /):");
+        this.directoryPath = t.inString("Enter absolute directory path to Q4 (end with /):");
     }
 
     public void setOutputFile() {
-        this.outputFile = directoryPath + t.inString("Enter output file name (e.g., file2.txt):");
+        this.outputFile = directoryPath + "output/" + t.inString("Enter output file name (e.g., file2.txt):");
     }
 
     public void initializeOptions() {
-//        TerminalInterface.MenuNode runMenu = t.addCategory("Run", t.getRootMenu());
-        TerminalInterface.MenuNode programMenu = t.addCategory("Program", t.getRootMenu());
-        TerminalInterface.MenuNode fileMenu = t.addCategory("File Settings", t.getRootMenu());
-        TerminalInterface.MenuNode statusMenu = t.addCategory("Status", t.getRootMenu());
-        t.addOption(fileMenu, "Change Directory", "Change the current filepath to the directory", t -> {
-            setDirectoryPath();
-            if (!this.directoryPath.endsWith("/")) {
-                this.directoryPath += "/";
-            }
-            t.out("Directory set to: " + this.directoryPath);
-        });
-        t.addOption(fileMenu, "Change Input File", "Change the current input file name", t -> {
-            setInputFile();
-            t.out("Input file set to: " + this.inputFile);
-        });
-        t.addOption(fileMenu, "Change Output File", "Change the current output file name", t -> {
-            setOutputFile();
-            t.out("Output file set to: " + this.outputFile);
-        });
         t.addOption(t.getRootMenu(), "Simple Run", "Simply run the program", t -> {
-            try {
-                simpleRun();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            setDirectory(t);
+            setInputFile(t);
+            setOutputFile(t);
+            findSSE(t);
+            closeApp(t);
         });
-        t.addOption(t.getRootMenu(), "Find SSE", "Find the best SSE", t -> {
-            try {
-                //iface.out("Error rate: " + errors + "/" + numberRecords + " = " + (errors / (float) numberRecords) * 100 + "%");
-                this.bestSSE = Double.MAX_VALUE;
-                double currentSSE = simpleRun();
-                int bestClusterSize = 0;
-                this.seed = 1;
-                numberClusters = 10;
-                int clusterRange = numberRecords;
-                while (numberClusters <= clusterRange) {
-                    this.seed = numberClusters;
-                    currentSSE = simpleRun();
-                    t.out("SSE: " + currentSSE + " with " + numberClusters + " clusters" + " (seed: " + this.seed + ")");
-                    if (currentSSE < bestSSE) {
-                        if (bestSSE-currentSSE >= 0.2) {
-                            //System.out.println(bestSSE - currentSSE);
-                            bestSSE = currentSSE;
-                            bestClusterSize = numberClusters;
-                        }
-                    }
-                    numberClusters += 10;
-                }
-                numberClusters = bestClusterSize;
-                this.seed = bestClusterSize;
-                simpleRun();
-                t.out("Best SSE: " + bestSSE + " with " + bestClusterSize + " clusters" + " (seed: " + this.seed + ")");
+        TerminalInterface.MenuNode fileMenu = t.addCategory("File Settings", t.getRootMenu());
+        t.addOption(fileMenu, "Change Directory", "Change the current filepath to the directory", this::setDirectory);
+        t.addOption(fileMenu, "Change Input File", "Change the current input file name", this::setInputFile);
+        t.addOption(fileMenu, "Change Output File", "Change the current output file name", this::setOutputFile);
+        t.addOption(t.getRootMenu(), "Exit", "Terminate the program", KmeansTester::closeApp);
+    }
 
-                // t.out("Best SSE: " + sseList.stream().min(Double::compareTo).get() + " with " + numberClusters + " clusters");
-            } catch (IOException e) {
+    private static void closeApp(TerminalInterface t) {
+        t.out("Goodbye!");
+        System.exit(0);
+    }
+
+    private void findSSE(TerminalInterface t) {
+        try {
+            //iface.out("Error rate: " + errors + "/" + numberRecords + " = " + (errors / (float) numberRecords) * 100 + "%");
+            this.bestSSE = Double.MAX_VALUE;
+            double currentSSE = simpleRun();
+            int bestClusterSize = 0;
+            this.seed = 1;
+            numberClusters = 10;
+            int clusterRange = numberRecords;
+            while (numberClusters <= clusterRange) {
+                this.seed = numberClusters;
+                currentSSE = simpleRun();
+                t.out("SSE: " + currentSSE + " with " + numberClusters + " clusters" + " (seed: " + this.seed + ")");
+                if (currentSSE < bestSSE) {
+                    if (bestSSE-currentSSE >= 0.2) {
+                        //System.out.println(bestSSE - currentSSE);
+                        bestSSE = currentSSE;
+                        bestClusterSize = numberClusters;
+                    }
+                }
+                numberClusters += 10;
             }
-        });
-        t.addOption(t.getRootMenu(), "Exit", "Terminate the program", t -> {
-            System.exit(0);
-        });
+            numberClusters = bestClusterSize;
+            this.seed = bestClusterSize;
+            simpleRun();
+            t.out("Best SSE: " + bestSSE + " with " + bestClusterSize + " clusters" + " (seed: " + this.seed + ")");
+
+            // t.out("Best SSE: " + sseList.stream().min(Double::compareTo).get() + " with " + numberClusters + " clusters");
+        } catch (IOException e) {
+        }
+    }
+
+    private void setOutputFile(TerminalInterface t) {
+        setOutputFile();
+        t.out("Output file set to: " + this.outputFile);
+    }
+
+    private void setInputFile(TerminalInterface t) {
+        setInputFile();
+        t.out("Input file set to: " + this.inputFile);
+    }
+
+    private void setDirectory(TerminalInterface t) {
+        setDirectoryPath();
+        if (!this.directoryPath.endsWith("/")) {
+            this.directoryPath += "/";
+        }
+        t.out("Directory set to: " + this.directoryPath);
     }
 
     public void run() {

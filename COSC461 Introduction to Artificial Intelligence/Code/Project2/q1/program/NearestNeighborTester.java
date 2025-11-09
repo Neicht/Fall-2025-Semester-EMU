@@ -16,7 +16,7 @@ public class NearestNeighborTester {
         Scanner scanner = new Scanner(System.in);
 
         //absolute filepath
-        System.out.print("Enter absolute path to directory: ");
+        System.out.print("Enter absolute path to q1 directory: ");
         String directory_path = scanner.nextLine();
         if (!new File(directory_path).exists() || !new File(directory_path).isDirectory()) {
             System.out.print("Does not exist or is not a directory");
@@ -27,44 +27,42 @@ public class NearestNeighborTester {
         //gather training and test files
         System.out.print("Enter training file name: ");
         String trainingfile = scanner.nextLine();
-        if (!new File(directory_path + trainingfile).exists()) {
+        if (!new File(directory_path + "/program/Data/" + trainingfile).exists()) {
             System.out.print("File does not exist");
             System.exit(1);
         }
         String trainingfile_converted = trainingfile + "_converted";
         System.out.print("Enter test file name: ");
         String testfile = scanner.nextLine();
-        if (!new File(directory_path + testfile).exists()) {
+        if (!new File(directory_path + "/program/Data/" +testfile).exists()) {
             System.out.print("File does not exist");
             System.exit(1);
         }
+        // add suffixes to modified files
         String testfile_converted = testfile + "_converted";
         String testfile_classified_original = testfile + "_classified_original";
         String testfile_classified = testfile + "_classified";
 
-        //close scanner
-
-
         //preprocess files
-        int numberRecords = getNumberRecords(directory_path + trainingfile);
-
+        int numberRecords = getNumberRecords(directory_path + "/program/Data/" +trainingfile);
         int minimumError = Integer.MAX_VALUE;
         int bestK = Integer.MAX_VALUE;
+        int bestSkip = Integer.MAX_VALUE;
+        NearestNeighbor classifier = new NearestNeighbor();
         for (int NEIGHBORS = 0; NEIGHBORS < numberRecords; NEIGHBORS++) {
             double startClock = System.nanoTime();
-            convertTrainingFile(directory_path + trainingfile, directory_path + trainingfile_converted);
-            convertTestFile(directory_path + testfile, directory_path + testfile_converted);
-
+            convertTrainingFile(directory_path + "/program/Data/" +trainingfile, directory_path + "/output/" +trainingfile_converted);
+            convertTestFile(directory_path + "/program/Data/" +testfile, directory_path + "/output/" +testfile_converted);
             int errors = 0;
             for (int skip = 0; skip < numberRecords; skip++) {
                 //construct nearest neighbor classifier
-                NearestNeighbor classifier = new NearestNeighbor();
+
 
                 //set skip index
                 classifier.setSkipIndex(skip);
 
                 //load training data
-                classifier.loadTrainingData(directory_path + trainingfile_converted);
+                classifier.loadTrainingData(directory_path + "/output/" +trainingfile_converted);
 
                 //set nearest neighbors
                 //number of nearest neighbors
@@ -73,10 +71,10 @@ public class NearestNeighborTester {
 
 
                 //classify test data
-                classifier.classifyData(directory_path + testfile_converted, directory_path + testfile_classified_original);
+                classifier.classifyData(directory_path + "/output/" +testfile_converted, directory_path + "/output/" +testfile_classified_original);
 
                 //postprocess files
-                convertClassFile(directory_path + testfile_classified_original, directory_path + testfile_classified);
+                convertClassFile(directory_path + "/output/" +testfile_classified_original, directory_path + "/output/" +testfile_classified);
 
                 //validate classfier
                 errors += classifier.validate();
@@ -92,25 +90,51 @@ public class NearestNeighborTester {
             System.out.println(" (" + (endClock - startClock) / 1000000000.0 + " seconds)");
         }
         System.out.println("Best k: " + bestK);
-        //clean
-        System.out.println("Clean? y/n");
-        if (scanner.nextLine().
+        classifier.setParameters(bestK);
+        for (int skip = 0; skip < numberRecords; skip++) {
+            //construct nearest neighbor classifier
 
-                equalsIgnoreCase("y")) {
-            System.out.print("Cleaning up");
-            Files.deleteIfExists(new File(directory_path + trainingfile_converted).toPath());
-            System.out.print(".");
-            Files.deleteIfExists(new File(directory_path + testfile_converted).toPath());
-            System.out.print(".");
-            Files.deleteIfExists(new File(directory_path + testfile_classified_original).toPath());
-            System.out.println(".");
-            Files.deleteIfExists(new File(directory_path + testfile_classified).toPath());
-            System.out.println("Done.");
+
+            //set skip index
+            classifier.setSkipIndex(skip);
+
+            //load training data
+            classifier.loadTrainingData(directory_path + "/output/" +trainingfile_converted);
+
+            //set nearest neighbors
+            //number of nearest neighbors
+
+            classifier.setParameters(bestK);
+
+
+            //classify test data
+            classifier.classifyData(directory_path + "/output/" +testfile_converted, directory_path + "/output/" +testfile_classified_original);
+
+            //postprocess files
+            convertClassFile(directory_path + "/output/" +testfile_classified_original, directory_path + "/output/" +testfile_classified);
+            classifier.validate();
+
         }
+        //clean generated output files
+//        System.out.println("Clean? y/n");
+//        if (scanner.nextLine().
+//
+//                equalsIgnoreCase("y")) {
+//            System.out.print("Cleaning up");
+//            Files.deleteIfExists(new File(directory_path + "/output/" +trainingfile_converted).toPath());
+//            System.out.print(".");
+//            Files.deleteIfExists(new File(directory_path + "/output/" +testfile_converted).toPath());
+//            System.out.print(".");
+//            Files.deleteIfExists(new File(directory_path + "/output/" +testfile_classified_original).toPath());
+//            System.out.println(".");
+//            Files.deleteIfExists(new File(directory_path  + "/output/" +testfile_classified).toPath());
+//            System.out.println("Done.");
+//        }
         scanner.close();
     }
 
 
+    // get the number of records via the first integer in a file
     private static int getNumberRecords(String filepath) throws FileNotFoundException {
         Scanner scanner = new Scanner(new File(filepath));
         int numberRecords = scanner.nextInt();
@@ -140,18 +164,21 @@ public class NearestNeighborTester {
 
     /*************************************************************************/
 
+    // middleman method to write training file to file
     private static void writeTrainingfile_to_File(Scanner inFile, PrintWriter outFile, int numberRecords) throws IOException {
         for (int i = 0; i < numberRecords; i++) {
             writeAttributes_to_File(inFile, outFile, numberRecords);
             writeClasses_to_File(inFile, outFile, numberRecords);
             outFile.println();
         }
+        //close files
         inFile.close();
         outFile.close();
     }
 
     /*************************************************************************/
 
+    // middleman method to write training file to file
     private static void writeTestfile_to_File(Scanner inFile, PrintWriter outFile, int numberRecords) {
         for (int i = 0; i < numberRecords; i++) {
             writeAttributes_to_File(inFile, outFile, numberRecords);
@@ -179,6 +206,7 @@ public class NearestNeighborTester {
         }) + " ");
     }
 
+    //method converts class name to number
     private static void writeClasses_to_File(Scanner inFile, PrintWriter outFile, int numberRecords) {
         outFile.print(applyFunction(inFile.next(), x -> switch (x) {
             case "low" -> 1;
@@ -192,6 +220,7 @@ public class NearestNeighborTester {
 
     /*************************************************************************/
 
+    //method converts test file to text format via middleman method
     private static void convertTestFile(String inputFile, String outputFile) throws IOException {
         //input and output9 files
         Scanner inFile = new Scanner(new File(inputFile));
