@@ -68,10 +68,6 @@ public class KmeansTester {
             findSSE(t);
             closeApp(t);
         });
-        TerminalInterface.MenuNode fileMenu = t.addCategory("File Settings", t.getRootMenu());
-        t.addOption(fileMenu, "Change Directory", "Change the current filepath to the directory", this::setDirectory);
-        t.addOption(fileMenu, "Change Input File", "Change the current input file name", this::setInputFile);
-        t.addOption(fileMenu, "Change Output File", "Change the current output file name", this::setOutputFile);
         t.addOption(t.getRootMenu(), "Exit", "Terminate the program", KmeansTester::closeApp);
     }
 

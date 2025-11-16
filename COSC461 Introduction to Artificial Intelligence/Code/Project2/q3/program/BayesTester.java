@@ -69,8 +69,8 @@ public class BayesTester {
         TerminalInterface.MenuNode root = this.terminal.getRootMenu();
         setupFileReferences();
         setupFileMenu(root);
-        setupActionMenu(root);
-        setupProgramMenu(root);
+//        setupActionMenu(root);
+//        setupProgramMenu(root);
     }
 
     private void setupFileMenu(TerminalInterface.MenuNode root) {
@@ -84,13 +84,13 @@ public class BayesTester {
             closeApp(iface);
 
         });
-
-        TerminalInterface.MenuNode fileMenu = terminal.addCategory("File Settings", root);
-
-        terminal.addOption(fileMenu, "Set Data Directory", "Set the absolute path to your Q2  folder", this::configureDirectory);
-        terminal.addOption(fileMenu, "Set Training File", "Set the name of the training file", this::configureTrainingFile);
-        terminal.addOption(fileMenu, "Set Test File", "Set the name of the test file", this::setTestFile);
-        terminal.addOption(fileMenu, "Set File Mode", "Set the filename format", this::setFileMode);
+//
+//        TerminalInterface.MenuNode fileMenu = terminal.addCategory("File Settings", root);
+//
+//        terminal.addOption(fileMenu, "Set Data Directory", "Set the absolute path to your Q2  folder", this::configureDirectory);
+//        terminal.addOption(fileMenu, "Set Training File", "Set the name of the training file", this::configureTrainingFile);
+//        terminal.addOption(fileMenu, "Set Test File", "Set the name of the test file", this::setTestFile);
+//        terminal.addOption(fileMenu, "Set File Mode", "Set the filename format", this::setFileMode);
 
     }
 

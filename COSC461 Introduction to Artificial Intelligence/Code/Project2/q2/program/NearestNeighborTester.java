@@ -69,8 +69,8 @@ public class NearestNeighborTester {
         TerminalInterface.MenuNode root = this.terminal.getRootMenu();
 
         setupFileMenu(root);
-        setupActionMenu(root);
-        setupProgramMenu(root);
+        //setupActionMenu(root);
+       // setupProgramMenu(root);
     }
 
     /*************************************************************************/
@@ -90,14 +90,14 @@ public class NearestNeighborTester {
             iface.out("Original test file with class labels: " + this.directory_path + this.testFile);
             exitApp(iface);
         });
-
-        TerminalInterface.MenuNode fileMenu = terminal.addCategory("File Settings", root);
-
-        terminal.addOption(fileMenu, "Set Data Directory", "Set the absolute path to your Data/ folder", this::configureDirectory);
-
-        terminal.addOption(fileMenu, "Set Training File", "Set the name of the training file", this::configureTrainingFile);
-
-        terminal.addOption(fileMenu, "Set Test File", "Set the name of the test file", this::configureTestFile);
+//
+//        TerminalInterface.MenuNode fileMenu = terminal.addCategory("File Settings", root);
+//
+//        terminal.addOption(fileMenu, "Set Data Directory", "Set the absolute path to your Data/ folder", this::configureDirectory);
+//
+//        terminal.addOption(fileMenu, "Set Training File", "Set the name of the training file", this::configureTrainingFile);
+//
+//        terminal.addOption(fileMenu, "Set Test File", "Set the name of the test file", this::configureTestFile);
     }
 
     /*************************************************************************/
