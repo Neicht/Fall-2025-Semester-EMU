@@ -9,7 +9,7 @@ public class NeuralNetwork
     /*************************************************************************/
 
     //Record class
-    private class Record 
+    private class Record
     {
         private double[] input;     //inputs of record  
         private double[] output;    //outputs of record        
@@ -21,12 +21,12 @@ public class NeuralNetwork
             this.output = output;   //set outputs
         }
     }
-    
+
     /*************************************************************************/
 
     private ArrayList<Record> records;   //list of training records
     private int numberRecords;           //number of training records 
-         
+
     private int numberInputs;            //number of inputs 
     private int numberOutputs;           //number of outputs
 
@@ -40,12 +40,17 @@ public class NeuralNetwork
 
     private double[] errorMiddle;        //errors at hidden nodes
     private double[] errorOut;           //errors at output nodes
-    
+
     private double[] thetaMiddle;        //thetas at hidden nodes
-    private double[] thetaOut;           //theats at output nodes
+    private double[] thetaOut;           //threats! at output nodes
 
     private double[][] matrixMiddle;     //weights between input/hidden nodes 
     private double[][] matrixOut;        //weights between hidden/output nodes
+
+    double[] inputMin;
+    double[] inputMax;
+    double[] outputMin;
+    double[] outputMax;
 
     /*************************************************************************/
 
@@ -53,62 +58,136 @@ public class NeuralNetwork
     public NeuralNetwork()
     {
         //parameters are zero
-        numberRecords = 0;       
+        numberRecords = 0;
         numberInputs = 0;
         numberOutputs = 0;
-        numberMiddle = 0;        
+        numberMiddle = 0;
         numberIterations = 0;
         rate = 0;
 
         //arrays are empty
-        records = null;          
-        input = null;            
+        records = null;
+        input = null;
         middle = null;
         output = null;
-        errorMiddle = null;      
+        errorMiddle = null;
         errorOut = null;
-        thetaMiddle = null;      
+        thetaMiddle = null;
         thetaOut = null;
-        matrixMiddle = null;     
+        matrixMiddle = null;
         matrixOut = null;
     }
 
     /*************************************************************************/
 
     //Method loads training records from training file
-    public void loadTrainingData(String trainingFile) throws IOException
-    {
-         Scanner inFile = new Scanner(new File(trainingFile));
+    //Method loads training records from training file
+    public void loadTrainingData(String trainingFile) throws IOException {
+        Scanner inFile = new Scanner(new File(trainingFile));
 
-         //read number of records, inputs, outputs
-         numberRecords = inFile.nextInt();    
-         numberInputs = inFile.nextInt();        
-         numberOutputs = inFile.nextInt();
-        
-         //empty list of records
-         records = new ArrayList<Record>();        
+        numberRecords = inFile.nextInt();
+        numberInputs = inFile.nextInt();
+        numberOutputs = inFile.nextInt();
 
-         //for each training record
-         for (int i = 0; i < numberRecords; i++)    
-         {
-             //read inputs
-             double[] input = new double[numberInputs];                                          
-             for (int j = 0; j < numberInputs; j++) 
-                 input[j] = inFile.nextDouble();
- 
-             //read outputs
-             double[] output = new double[numberOutputs];
-             for (int j = 0; j < numberOutputs; j++) 
-                 output[j] = inFile.nextDouble();
+        // Initialize min/max arrays
+        inputMin = new double[numberInputs];
+        inputMax = new double[numberInputs];
+        outputMin = new double[numberOutputs];
+        outputMax = new double[numberOutputs];
 
-             //create training record record
-             Record record = new Record(input, output);
+        for (int i = 0; i < numberInputs; i++) {
+            inputMin[i] = Double.POSITIVE_INFINITY;
+            inputMax[i] = Double.NEGATIVE_INFINITY;
+        }
+        for (int i = 0; i < numberOutputs; i++) {
+            outputMin[i] = Double.POSITIVE_INFINITY;
+            outputMax[i] = Double.NEGATIVE_INFINITY;
+        }
 
-             //add record to list
-             records.add(record);
-         }
+        // Use a temporary list to store raw data first
+        ArrayList<Record> tempRecords = new ArrayList<Record>();
 
-         inFile.close();
+        // --- PASS 1: Find Min/Max values and store raw data ---
+        for (int i = 0; i < numberRecords; i++) {
+            double[] input = new double[numberInputs];
+            for (int j = 0; j < numberInputs; j++) {
+                double val = inFile.nextDouble();
+                input[j] = val;
+                if (val < inputMin[j]) inputMin[j] = val;
+                if (val > inputMax[j]) inputMax[j] = val;
+            }
+
+            double[] output = new double[numberOutputs];
+            for (int j = 0; j < numberOutputs; j++) {
+                double val = inFile.nextDouble();
+                output[j] = val;
+                if (val < outputMin[j]) outputMin[j] = val;
+                if (val > outputMax[j]) outputMax[j] = val;
+            }
+
+            tempRecords.add(new Record(input, output));
+        }
+
+        inFile.close();
+
+        // --- PASS 2: Normalize the data and store in final 'records' list ---
+        records = new ArrayList<Record>();
+        for (Record rawRecord : tempRecords) {
+            double[] normalizedInput = normalizeInput(rawRecord.input);
+            double[] normalizedOutput = normalizeOutput(rawRecord.output);
+
+            records.add(new Record(normalizedInput, normalizedOutput));
+        }
+    }
+    // Generic helper to normalize a single value
+    private double normalize(double x, double min, double max) {
+        double range = max - min;
+        if (range == 0) {
+            return 0; // Or 0.5, or x. 0 is fine if the network can handle it.
+        }
+        return (x - min) / range;
+    }
+
+    // Generic helper to de-normalize a single value
+    private double deNormalize(double y, double min, double max) {
+        double range = max - min;
+        return y * range + min;
+    }
+
+    // Normalizes an array of inputs
+    private double[] normalizeInput(double[] rawInput) {
+        double[] normalizedInput = new double[numberInputs];
+        for (int i = 0; i < numberInputs; i++) {
+            normalizedInput[i] = normalize(rawInput[i], inputMin[i], inputMax[i]);
+        }
+        return normalizedInput;
+    }
+
+    // Normalizes an array of outputs
+    private double[] normalizeOutput(double[] rawOutput) {
+        double[] normalizedOutput = new double[numberOutputs];
+        for (int i = 0; i < numberOutputs; i++) {
+            normalizedOutput[i] = normalize(rawOutput[i], outputMin[i], outputMax[i]);
+        }
+        return normalizedOutput;
+    }
+
+    // De-normalizes an array of inputs
+    private double[] deNormalizeInput(double[] normalizedInput) {
+        double[] rawInput = new double[numberInputs];
+        for (int i = 0; i < numberInputs; i++) {
+            rawInput[i] = deNormalize(normalizedInput[i], inputMin[i], inputMax[i]);
+        }
+        return rawInput;
+    }
+
+    // De-normalizes an array of outputs
+    private double[] deNormalizeOutput(double[] normalizedOutput) {
+        double[] rawOutput = new double[numberOutputs];
+        for (int i = 0; i < numberOutputs; i++) {
+            rawOutput[i] = deNormalize(normalizedOutput[i], outputMin[i], outputMax[i]);
+        }
+        return rawOutput;
     }
 
     /*************************************************************************/
@@ -138,7 +217,7 @@ public class NeuralNetwork
         thetaMiddle = new double[numberMiddle];
         for (int i = 0; i < numberMiddle; i++)
             thetaMiddle[i] = 2*rand.nextDouble() - 1;
-         
+
         //initialize thetas at output nodes
         thetaOut = new double[numberOutputs];
         for (int i = 0; i < numberOutputs; i++)
@@ -191,14 +270,14 @@ public class NeuralNetwork
 
             //compute input at hidden node
             for (int j = 0; j < numberInputs; j++)
-                sum += input[j]*matrixMiddle[j][i]; 
-            
+                sum += input[j]*matrixMiddle[j][i];
+
             //add theta
             sum += thetaMiddle[i];
 
             //compute output at hidden node
             middle[i] = 1/(1 + Math.exp(-sum));
-        }        
+        }
 
         //for each output node
         for (int i = 0; i < numberOutputs; i++)
@@ -207,14 +286,14 @@ public class NeuralNetwork
 
             //compute input at output node
             for (int j = 0; j < numberMiddle; j++)
-                sum += middle[j]*matrixOut[j][i]; 
-            
+                sum += middle[j]*matrixOut[j][i];
+
             //add theta
             sum += thetaOut[i];
 
             //compute output at output node
             output[i] = 1/(1 + Math.exp(-sum));
-        }        
+        }
     }
 
     /*************************************************************************/
@@ -232,8 +311,8 @@ public class NeuralNetwork
             double sum = 0;
 
             for (int j = 0; j < numberOutputs; j++)
-                sum += matrixOut[i][j]*errorOut[j];                
-         
+                sum += matrixOut[i][j]*errorOut[j];
+
             errorMiddle[i] = middle[i]*(1-middle[i])*sum;
         }
 
@@ -259,97 +338,99 @@ public class NeuralNetwork
     /*************************************************************************/
 
     //Method computes output of an input
-    private double[] test(double[] input)
+    private double[] test(double[] rawInput)
     {
-        //forward pass input
-        forwardCalculation(input);
+        // Normalize the raw input before feeding it to the network
+        double[] normalizedInput = normalizeInput(rawInput);
 
-        //return output produced
+        //forward pass normalized input
+        forwardCalculation(normalizedInput);
+
+        //return normalized output produced
         return output;
     }
 
     /*************************************************************************/
 
-    //Method reads inputs from input file, computes outputs, and writes outputs 
+    //Method reads inputs from input file, computes outputs, and writes outputs
     //to output file
     public void testData(String inputFile, String outputFile) throws IOException
     {
-         Scanner inFile = new Scanner(new File(inputFile));
-         PrintWriter outFile = new PrintWriter(new FileWriter(outputFile));
+        Scanner inFile = new Scanner(new File(inputFile));
+        PrintWriter outFile = new PrintWriter(new FileWriter(outputFile));
 
-         //read number of records
-         int numberRecords = inFile.nextInt();
+        int numberRecords = inFile.nextInt();
 
-         //for each record
-         for (int i = 0; i < numberRecords; i++)
-         {
-             double[] input = new double[numberInputs];
+        for (int i = 0; i < numberRecords; i++)
+        {
+            double[] rawInput = new double[numberInputs];
 
-             //read input from input file
-             for (int j = 0; j < numberInputs; j++)
-                  input[j] = inFile.nextDouble();
+            for (int j = 0; j < numberInputs; j++)
+                rawInput[j] = inFile.nextDouble();
 
-             //find output using neural network
-             double[] output = test(input);
+            // test method now takes raw input
+            double[] normalizedOutput = test(rawInput);
 
-             //write output to output file
-             for (int j = 0; j < numberOutputs; j++)
-                 outFile.print(output[j] + " ");
-             outFile.println();
-         }
+            // de-normalize the output for the file
+            double[] rawOutput = deNormalizeOutput(normalizedOutput);
 
-         inFile.close();
-         outFile.close();
+            for (int j = 0; j < numberOutputs; j++)
+                outFile.print(rawOutput[j] + " ");
+            outFile.println();
+        }
+
+        inFile.close();
+        outFile.close();
     }
 
     /*************************************************************************/
 
     //Method validates the network using the data from a file
-    public void validate(String validationFile) throws IOException
+    public double validate(String validationFile) throws IOException
     {
-         Scanner inFile = new Scanner(new File(validationFile));
+        Scanner inFile = new Scanner(new File(validationFile));
 
-         //read number of records
-         int numberRecords = inFile.nextInt();
+        int numberRecords = inFile.nextInt();
+        double sumError = 0;
 
-         //initialize error
-         double sumError = 0;
+        for (int i = 0; i < numberRecords; i++)
+        {
+            // read raw inputs
+            double[] rawInput = new double[numberInputs];
+            for (int j = 0; j < numberInputs; j++)
+                rawInput[j] = inFile.nextDouble();
 
-         //for each record
-         for (int i = 0; i < numberRecords; i++)
-         {
-             //read inputs
-             double[] input = new double[numberInputs];
-             for (int j = 0; j < numberInputs; j++)
-                  input[j] = inFile.nextDouble();
+            // read raw actual outputs
+            double[] actualOutput = new double[numberOutputs];
+            for (int j = 0; j < numberOutputs; j++)
+                actualOutput[j] = inFile.nextDouble();
 
-             //read actual outputs
-             double[] actualOutput = new double[numberOutputs];
-             for (int j = 0; j < numberOutputs; j++)
-                  actualOutput[j] = inFile.nextDouble();
+            // find normalized predicted outputs
+            double[] predictedNormalizedOutput = test(rawInput);
 
-             //find predicted outputs
-             double[] predictedOutput = test(input);
+            // de-normalize predicted outputs
+            double[] predictedOutput = deNormalizeOutput(predictedNormalizedOutput);
 
-             //find error between actual and predicted outputs
-             sumError += computeError(actualOutput, predictedOutput);
+            // find error between raw actual and raw predicted outputs
+            sumError += computeError(actualOutput, predictedOutput);
 
-             //display actual outputs
-             for (int j = 0; j < numberOutputs; j++)
-                 System.out.print(actualOutput[j] + " ");
-             System.out.println();
+            // display raw actual outputs
+            //for (int j = 0; j < numberOutputs; j++)
+                //System.out.print(actualOutput[j] + " ");
+            //System.out.println();
 
-             //display predicted outputs
-             for (int j = 0; j < numberOutputs; j++)
-                 System.out.print(predictedOutput[j] + " ");
-             System.out.println();
-             System.out.println();
-         }
-  
-         //display average error
-         System.out.println(sumError/numberRecords);
+            // display raw predicted outputs
+           // for (int j = 0; j < numberOutputs; j++)
+                //System.out.print(predictedOutput[j] + " ");
+            //System.out.println();
+            //System.out.println();
+        }
 
-         inFile.close();
+        //display average error
+        //System.out.println(sumError/numberRecords);
+
+        inFile.close();
+        return sumError/numberRecords;
     }
 
     /*************************************************************************/
@@ -365,7 +446,7 @@ public class NeuralNetwork
 
         //root mean square error
         return Math.sqrt(error/actualOutput.length);
-    }    
+    }
 
     /*************************************************************************/
 }

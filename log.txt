@@ -1,0 +1,13 @@
+[Log Started: log.txt]
+----------------- Main Menu ------------------
+1. Run Standard Test
+2. Run Debug Test (Data1)
+3. Run Debug Test (Data2)
+4. Tune Parameters (Data1)
+5. Tune Parameters (Data2)
+6. Show Current Settings
+7. Info
+8. Test
+9. Exit Program
+----------------------------------------------
+Select option: 
