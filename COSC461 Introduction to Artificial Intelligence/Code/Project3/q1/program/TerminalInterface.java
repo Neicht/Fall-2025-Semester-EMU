@@ -11,21 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The Ultimate Terminal Interface.
- * <p>
- * A comprehensive utility class designed for college assignments and console-based applications.
- * </p>
- * <p>
- * Features include:
- * <ul>
- * <li>Robust Input handling with validation (Ranges, Defaults, Booleans).</li>
- * <li>Advanced Console Rendering (Tables, Histograms, Progress Bars).</li>
- * <li>State-based styling (like OpenGL push/pop state).</li>
- * <li>File System navigation (Browsers, Tree views, Read/Write shortcuts).</li>
- * <li>Debug utilities (Object inspection, Timing, Crash guards).</li>
- * <li>Automata Theory helpers (DFA/TM visualization).</li>
- * </ul>
- *
+ * The Ultimate Terminal Interface (UTI for short)
  * @author Nicholas Gawenda
  * @version 3.1 Swiss Army Knife
  */
@@ -111,6 +97,11 @@ public class TerminalInterface {
 
     public TerminalInterface setLineWidth(int w) {
         printer.setLineWidth(w);
+        return this;
+    }
+
+    public TerminalInterface setIncrementStep(int s) {
+        printer.setIncrementStep(s);
         return this;
     }
 
@@ -548,8 +539,15 @@ public class TerminalInterface {
      * @param max  Maximum value.
      * @return The array of random ints.
      */
-    public int[] generateIntArray(int size, int min, int max) {
-        return debug.generateIntArray(size, min, max);
+    public int[] generateRandomIntArray(int size, int min, int max) {
+        return debug.generateRandomIntArray(size, min, max);
+    }
+
+    public int[] generateIntArray(int size, int step, int start){
+        return debug.generateIntArray(size, step, start);
+    }
+    public double[] generateDoubleArray(int size, double step, double start){
+        return debug.generateDoubleArray(size, step, start);
     }
 
     /**
@@ -681,11 +679,12 @@ public class TerminalInterface {
      * Internal component responsible for all console output and state management.
      */
     private static class ConsolePrinter {
+
         private static class State implements Cloneable {
             int lineWidth = 46;
             char lineStyle = '-';
             int statLabelWidth = 25;
-            // New Parameters
+            int incrementStep = 1;
             int indent = 0;
             Alignment align = Alignment.CENTER;
             String prefix = "";
@@ -741,6 +740,8 @@ public class TerminalInterface {
         public void setPrefix(String p) {
             state.prefix = (p == null) ? "" : p;
         }
+
+        public void setIncrementStep(int s) { state.incrementStep = s; }
 
 
         public void pushState() {
@@ -1248,7 +1249,7 @@ public class TerminalInterface {
             }
         }
 
-        public int[] generateIntArray(int size, int min, int max) {
+        public int[] generateRandomIntArray(int size, int min, int max) {
             Random r = new Random();
             return r.ints(size, min, max + 1).toArray();
         }
@@ -1259,6 +1260,18 @@ public class TerminalInterface {
             Random r = new Random();
             for (int i = 0; i < len; i++) sb.append(chars.charAt(r.nextInt(chars.length())));
             return sb.toString();
+        }
+
+        public int[] generateIntArray(int size, int step, int start) {
+            int[] arr = new int[size];
+            for (int i = 0; i < arr.length; i++) arr[i] = start + (step * i);
+            return arr;
+        }
+
+        public double[] generateDoubleArray(int size, double step, double start) {
+            double[] arr = new double[size];
+            for (int i = 0; i < arr.length; i++) arr[i] = start + (step * i);
+            return arr;
         }
     }
 
@@ -1406,12 +1419,12 @@ public class TerminalInterface {
 
             /**
              * Generates a Graphviz DOT file for visualizing automaton.
-             * Copy the content to validviz.com to see the diagram.
+             * Use <a href="https://dreampuf.github.io/GraphvizOnline">...</a>
              *
              * @param filename     Output filename (e.g., "dfa.dot")
              * @param transitions  Map of Source -> (Symbol -> Destination)
              * @param startState   Name of the start state
-             * @param acceptStates Set of accept state names
+             * @param acceptStates Set of accepted state names
              */
             public void exportDotFile(String filename, Map<String, Map<String, String>> transitions, String startState, Set<String> acceptStates) {
                 StringBuilder dot = new StringBuilder();

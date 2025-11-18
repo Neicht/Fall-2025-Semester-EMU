@@ -11,6 +11,7 @@ public class NeuralNetworkTester {
     String validation_file;
     NeuralNetwork network;
     TerminalInterface t;
+    boolean debug = false;
 
     public static void main(String[] args) throws IOException {
         NeuralNetworkTester test = new NeuralNetworkTester();
@@ -34,56 +35,38 @@ public class NeuralNetworkTester {
         t.pushState();
         t.setLineWidth(46).setLineStyle('-').setStatLabelWidth(20);
         t.start();
-
+        t.popState();
     }
 
     private void initializeTerminal(TerminalInterface t) {
-
         t.addOption(t.getRootMenu(), "Run Standard Test", "Run Data1 & Data2 with debug parameters", (iface) -> {
             // refresh network
             this.network = new NeuralNetwork();
             processInput(t);
         });
-
         t.addOption(t.getRootMenu(), "Tune Parameters", "Find best parameters", (iface) -> {
             try {
-                tune(iface);
+                tune(t);
             } catch (IOException e) {
-                t.out("Error during tuning: " + e.getMessage());
+                throw new RuntimeException(e);
             }
         });
-
         t.addOption(t.getRootMenu(), "Show Current Settings", "Display network parameters", (iface) -> {
-
-
             iface.printHeader("Current Settings");
             iface.printStat("Seed", String.valueOf(getSeed()));
             iface.printStat("Learning Rate", String.valueOf(getRate()));
             iface.printStat("Number of Iterations", String.valueOf(getNumberIterations()));
             iface.printStat("Number of Middle Nodes", String.valueOf(getNumberMiddle()));
             iface.printLine();
-
-
         });
-
         t.addOption(t.getRootMenu(), "Info", "Display information about the program", (iface) -> {
-
-
             iface.printHeader("Info");
             iface.printStat("Author", "Nicholas Gawenda");
             iface.printStat("Date", "11/16/2025");
             iface.out("");
-            iface.printBody("The learning rate, number of iterations, and number of middle nodes are determined by iteratively searching through 27 (3-size-3-arrays) different preset values. These values can be further developed for greater ambiguity by stepping by r in a range x,y. The seed is processed as 0 unless otherwise specified by the user.");
+            iface.printBody("The learning rate, number of iterations, and number of middle nodes are determined by iteratively searching through X (X=z*y; z-number of size-y-arrays) different preset values. These values can be further developed for greater ambiguity by stepping by r in a range x,y. The seed is processed as 0 unless otherwise specified by the user.");
             iface.printLine();
-
-
         });
-
-        t.addOption(t.getRootMenu(), "Test", "", (iface) -> {
-
-            t.printState();
-        });
-
         t.addOption(t.getRootMenu(), "Exit Program", "Close the application", TerminalInterface::stop);
     }
 
@@ -97,9 +80,14 @@ public class NeuralNetworkTester {
         String validationPath = getValidation_file();
         int seed = 0;
 
-        double[] ratesToTest = {0.5, 0.1, 0.05};
-        int[] iterationsToTest = {1000, 2000, 5000};
-        int[] middlesToTest = {5, 10, 20};
+
+//        double[] ratesToTest = {0.5, 0.1, 0.05};
+//        int[] iterationsToTest = {1000, 2000, 5000};
+//        int[] middlesToTest = {5, 10, 20};
+
+        double[] ratesToTest = t.generateDoubleArray(10, 0.1, 0.0);
+        int[] iterationsToTest = t.generateIntArray(10, 1000, 5000);
+        int[] middlesToTest = t.generateIntArray(10, 5, 5);
 
         double bestError = Double.POSITIVE_INFINITY;
         double bestRate = 0;
@@ -110,8 +98,12 @@ public class NeuralNetworkTester {
         double[] values = new double[totalTests];
 
         for (double rate : ratesToTest) {
+            // learning rate seems to be the most critical parameter, showing greater results as it gets higher
+            // is this due to overfitting? Or is it actually getting better?
             for (int iterations : iterationsToTest) {
+                // no determined correlation for number of iterations. too hard to test within reason.
                 for (int middle : middlesToTest) {
+                    // the number of middle nodes seems to prefer being about 1/5 the size of the training set
 
                     testCount++;
 
@@ -121,8 +113,6 @@ public class NeuralNetworkTester {
                     testNetwork.train();
 
                     double currentError = testNetwork.validate(validationPath);
-
-                    //t.printStat("Error", String.format("%.8f", currentError));
                     if (currentError < bestError) {
                         bestError = currentError;
                         bestRate = rate;
@@ -131,7 +121,6 @@ public class NeuralNetworkTester {
                         this.numberIterations = iterations;
                         bestMiddle = middle;
                         this.numberMiddle = middle;
-                        //t.out("  -> New Best Found.");
                     }
                     values[testCount - 1] = currentError;
                     t.printProgress(testCount, totalTests);
@@ -139,7 +128,7 @@ public class NeuralNetworkTester {
             }
         }
         long toc = t.getToc();
-        t.printLine();
+        t.printHeader("Generating Histogram");
         t.printHistogram(values);
         t.printHeader("Tuning Results");
         String minError = String.format("%.4f", bestError);
@@ -147,14 +136,16 @@ public class NeuralNetworkTester {
         t.printStat("Learn Rate", String.valueOf(bestRate));
         t.printStat("Iterations", String.valueOf(bestIterations));
         t.printStat("Mid Nodes", String.valueOf(bestMiddle));
-        t.printStat("Time Taken", toc+"ms");
+        t.printStat("Time Taken", toc + "ms");
         t.printLine();
 
-    }
+        NeuralNetwork tempNetwork = new NeuralNetwork();
+        tempNetwork.loadTrainingData(trainingPath);
+        tempNetwork.setParameters(bestMiddle, bestIterations, bestRate, seed);
+        tempNetwork.train();
+        tempNetwork.testData(getInput_file(), getOutput_file());
+        tempNetwork.validate(getValidation_file());
 
-    private void processInput(TerminalInterface t, int variation) {
-        setupFileReferences_Debug(t, variation);
-        deployNetwork(t);
     }
 
     private void processInput(TerminalInterface t) {
@@ -202,31 +193,6 @@ public class NeuralNetworkTester {
         setValidation_filee(validationPath);
         setInput_file(inputPath);
         setOutput_file(outputPath);
-    }
-
-    private void setupFileReferences_Debug(TerminalInterface t, int variation) {
-        String trainingPath = null, validationPath = null, inputPath = null, outputPath = null;
-        switch (variation) {
-            case 1:
-                trainingPath = "C:\\Users\\Austr\\IdeaProjects\\Fall-2025-Semester-EMU\\COSC461 Introduction to Artificial Intelligence\\Code\\Project3\\q1\\program\\Data1\\training";
-                validationPath = "C:\\Users\\Austr\\IdeaProjects\\Fall-2025-Semester-EMU\\COSC461 Introduction to Artificial Intelligence\\Code\\Project3\\q1\\program\\Data1\\validation";
-                inputPath = "C:\\Users\\Austr\\IdeaProjects\\Fall-2025-Semester-EMU\\COSC461 Introduction to Artificial Intelligence\\Code\\Project3\\q1\\program\\Data1\\input";
-                outputPath = "C:\\Users\\Austr\\IdeaProjects\\Fall-2025-Semester-EMU\\COSC461 Introduction to Artificial Intelligence\\Code\\Project3\\q1\\program\\Data1\\output";
-                break;
-            case 2:
-                trainingPath = "C:\\Users\\Austr\\IdeaProjects\\Fall-2025-Semester-EMU\\COSC461 Introduction to Artificial Intelligence\\Code\\Project3\\q1\\program\\Data2\\training";
-                validationPath = "C:\\Users\\Austr\\IdeaProjects\\Fall-2025-Semester-EMU\\COSC461 Introduction to Artificial Intelligence\\Code\\Project3\\q1\\program\\Data2\\validation";
-                inputPath = "C:\\Users\\Austr\\IdeaProjects\\Fall-2025-Semester-EMU\\COSC461 Introduction to Artificial Intelligence\\Code\\Project3\\q1\\program\\Data2\\input";
-                outputPath = "C:\\Users\\Austr\\IdeaProjects\\Fall-2025-Semester-EMU\\COSC461 Introduction to Artificial Intelligence\\Code\\Project3\\q1\\program\\Data2\\output";
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid file variation: " + variation);
-
-        }
-        this.setTraining_file(trainingPath);
-        this.setValidation_filee(validationPath);
-        this.setInput_file(inputPath);
-        this.setOutput_file(outputPath);
     }
 
     private void setupNetworkParameters(TerminalInterface t) {
