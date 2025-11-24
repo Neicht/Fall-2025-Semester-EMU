@@ -1,6 +1,6 @@
-package Project3.q1.program;
+package Project3.q2.program;
 
-import java.io.*;
+import java.io.IOException;
 
 public class NeuralNetworkTester {
     int numberMiddle, numberIterations, seed;
@@ -64,12 +64,12 @@ public class NeuralNetworkTester {
 //            iface.printStat("Author", "Nicholas Gawenda");
 //            iface.printStat("Date", "11/16/2025");
 //            iface.out("");
-//            iface.printBody("The learning rate, number of iterations, and number of middle nodes are determined by iteratively searching through X (X=z*y; z-number of size-y-arrays) different preset values. These values can be further developed for greater ambiguity by stepping by r in a range x,y. The seed is processed as 0 unless otherwise specified by the user.");
+//            iface.printBody(
+//                    "The learning rate, number of iterations, and number of middle nodes are determined by iteratively searching through X (X=z*y; z-number of size-y-arrays) different preset values. These values can be further developed for greater ambiguity by stepping by r in a range x,y. The seed is processed as 0 unless otherwise specified by the user.");
 //            iface.printLine();
 //        });
 //        t.addOption(t.getRootMenu(), "Exit Program", "Close the application", TerminalInterface::stop);
     }
-
 
     private void tune(TerminalInterface t) throws IOException {
         t.tic();
@@ -81,17 +81,16 @@ public class NeuralNetworkTester {
         String validationPath = getValidation_file();
         int seed = 0;
 
+        // double[] ratesToTest = {0.5, 0.1, 0.05};
+        // int[] iterationsToTest = {1000, 2000, 5000};
+        // int[] middlesToTest = {5, 10, 20};
 
-//        double[] ratesToTest = {0.5, 0.1, 0.05};
-//        int[] iterationsToTest = {1000, 2000, 5000};
-//        int[] middlesToTest = {5, 10, 20};
-
-        // NOTE: probably don't touch unless fine-tuning
-        double[] ratesToTest = t.generateDoubleArray(1, 0, 0.8); // negligible impact on runtime
+        // NOTE: probably don't touch rate unless fine-tuning
+        double[] ratesToTest = t.generateDoubleArray(1, 0, 0.2); // no impact on runtime
         // Modify based on the number of records in the training set
-        int[] iterationsToTest = t.generateIntArray(1, 0, 15000); // most impact on runtime
+        int[] iterationsToTest = t.generateIntArray(1, 0, 10000); // great impact on runtime
         // Modify if the number of attributes changes
-        int[] middlesToTest = t.generateIntArray(1, 0, 4); // second most impact on runtime
+        int[] middlesToTest = t.generateIntArray(1, 0, 10); // second most impact on runtime
 
         double bestError = Double.POSITIVE_INFINITY;
         double bestRate = 0;
@@ -103,13 +102,16 @@ public class NeuralNetworkTester {
         String[] labels = new String[totalTests];
 
         for (double rate : ratesToTest) {
-            // learning rate seems to be the most critical parameter, showing greater results as it gets higher
+            // learning rate seems to be the most critical parameter, showing greater
+            // results as it gets higher
             // is this due to overfitting? Or is it actually getting better?
             for (int iterations : iterationsToTest) {
                 // within a reasonable range, typically it seems the highest value is best.
-                // However, too high seems to outweigh the training rate and leads to overfitting
+                // However, too high seems to outweigh the training rate and leads to
+                // overfitting
                 for (int middle : middlesToTest) {
-                    // the number of middle nodes seems to prefer being about 1/5 the size of the training set
+                    // the number of middle nodes seems to prefer being about 1/5 the size of the
+                    // training set
 
                     testCount++;
 
@@ -139,7 +141,7 @@ public class NeuralNetworkTester {
         t.printFancyHistogram(values, labels);
         t.printHeader("Tuning Results");
         String minError = String.format("%.4f", bestError);
-        t.printStat("Min Error", minError);
+        t.printStat("Error Rate", minError + "%");
         t.printStat("Learn Rate", String.valueOf(bestRate));
         t.printStat("Iterations", String.valueOf(bestIterations));
         t.printStat("Mid Nodes", String.valueOf(bestMiddle));
@@ -189,7 +191,6 @@ public class NeuralNetworkTester {
             throw new RuntimeException(e);
         }
     }
-
 
     private void setupFileReferences(TerminalInterface t) {
         String trainingPath, validationPath, inputPath, outputPath;

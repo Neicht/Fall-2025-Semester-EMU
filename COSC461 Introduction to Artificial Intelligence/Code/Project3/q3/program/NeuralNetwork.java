@@ -1,7 +1,12 @@
-package Project3.q1.program;
+package Project3.q3.program;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.Scanner;
 
 //Neural network
 public class NeuralNetwork {
@@ -49,6 +54,9 @@ public class NeuralNetwork {
     double[] outputMin;
     double[] outputMax;
 
+    char[] inputString;
+    char[] outputString;
+
     /*************************************************************************/
 
     //Constructor of neural network
@@ -76,13 +84,13 @@ public class NeuralNetwork {
 
     /*************************************************************************/
 
-    //Method loads training records from training file
+//Method loads training records from training file
     public void loadTrainingData(String trainingFile) throws IOException {
         Scanner inFile = new Scanner(new File(trainingFile));
 
-        numberRecords = inFile.nextInt();
-        numberInputs = inFile.nextInt();
-        numberOutputs = inFile.nextInt();
+        if (inFile.hasNextInt()) numberRecords = inFile.nextInt();
+        if (inFile.hasNextInt()) numberInputs = inFile.nextInt();
+        if (inFile.hasNextInt()) numberOutputs = inFile.nextInt();
 
         // Initialize min/max arrays
         inputMin = new double[numberInputs];
@@ -90,7 +98,7 @@ public class NeuralNetwork {
         outputMin = new double[numberOutputs];
         outputMax = new double[numberOutputs];
 
-        // populate min/max arrays
+        // populate min/max arrays with starting values
         for (int i = 0; i < numberInputs; i++) {
             inputMin[i] = Double.POSITIVE_INFINITY;
             inputMax[i] = Double.NEGATIVE_INFINITY;
@@ -102,52 +110,55 @@ public class NeuralNetwork {
 
         // create temporary array of records
         ArrayList<Record> tempRecords = new ArrayList<Record>();
-        // read records and find min/max values
-        // loop: {
-        // for i : number records;
-        // create double[numberInputs] and double[numberOutputs];
-//             {
-//             for j : numberInputs; for j : numberOutputs;
-//             val = inFile.nextDouble(); if (val < min) min = val; if (val > max) max = val; for both input and output
-//             separately
-//             }
-        // add record to tempRecords
-        // }
 
         for (int i = 0; i < numberRecords; i++) {
-
-
             double[] input = new double[numberInputs];
-            for (int j = 0; j < numberInputs; j++) {
-                double val = inFile.nextDouble();
-                input[j] = val;
-                if (val < inputMin[j]) inputMin[j] = val;
-                if (val > inputMax[j]) inputMax[j] = val;
-            }
-
             double[] output = new double[numberOutputs];
-            for (int j = 0; j < numberOutputs; j++) {
-                double val = inFile.nextDouble();
-                output[j] = val;
-                if (val < outputMin[j]) outputMin[j] = val;
-                if (val > outputMax[j]) outputMax[j] = val;
+            int inputIndex = 0;
+            // 16
+            int rows = (int) Math.sqrt(numberInputs);
+
+            for (int r = 0; r < rows; r++) {
+                String line = inFile.next(); // Read the next string of 0s and 1s
+                for (int c = 0; c < line.length(); c++) {
+                    // Convert char '1' to 1.0, '0' to 0.0
+                    double val = (line.charAt(c) == '1') ? 1.0 : 0.0;
+
+                    input[inputIndex] = val;
+
+                    // Update Input Min/Max
+                    if (val < inputMin[inputIndex]) inputMin[inputIndex] = val;
+                    if (val > inputMax[inputIndex]) inputMax[inputIndex] = val;
+
+                    inputIndex++;
+                }
+
             }
 
+            // 2. Parse Output Label ("zero", "one", "two")
+            String label = inFile.next();
+            double outVal = 0.0;
+
+            if (label.equalsIgnoreCase("zero")) outVal = 0.0;
+            else if (label.equalsIgnoreCase("one")) outVal = 1.0;
+            else if (label.equalsIgnoreCase("two")) outVal = 2.0;
+
+            output[0] = outVal; // Assuming 1 output node based on file header
+
+            // Update Output Min/Max
+            if (outVal < outputMin[0]) outputMin[0] = outVal;
+            if (outVal > outputMax[0]) outputMax[0] = outVal;
 
             tempRecords.add(new Record(input, output));
         }
 
-
-        // close infile and create new record arraylist
         inFile.close();
+
+        // 3. Normalize Data and store in final records list
         records = new ArrayList<Record>();
-        // for each record in tempRecords
-        // new double of inputs and outputs; normalize rawRecord.input and rawRecord.output
-        // add normalized record information to records
         for (Record rawRecord : tempRecords) {
             double[] normalizedInput = normalizeInput(rawRecord.input);
             double[] normalizedOutput = normalizeOutput(rawRecord.output);
-
             records.add(new Record(normalizedInput, normalizedOutput));
         }
     }
@@ -164,9 +175,17 @@ public class NeuralNetwork {
         if (roundedMin > min) {
             roundedMin = Math.floor(min);
         }
-        if (roundedMax == 1) {
-            return x;
+        if (x == 1.0) {
+            return 0.5;
         }
+        if (x == 0.0) {
+            return 0.0;
+        }
+        if(x == 2.0) {
+            return 1.0;
+        }
+
+
 
         double normalData = (x - roundedMin) / (roundedMax - roundedMin);
         return normalData;
@@ -183,6 +202,15 @@ public class NeuralNetwork {
         }
         if (roundedMin > min) {
             roundedMin = Math.floor(min);
+        }
+        if ( y == 0.0){
+            return 0.0;
+        }
+        if ( y == 0.5){
+            return 1.0;
+        }
+        if ( y == 1.0){
+            return 2.0;
         }
         double range = roundedMax - roundedMin;
         return y * range + roundedMin;
@@ -368,29 +396,40 @@ public class NeuralNetwork {
 
     /*************************************************************************/
 
-    //Method reads inputs from input file, computes outputs, and writes outputs
+//Method reads inputs from input file, computes outputs, and writes outputs
     //to output file
     public void testData(String inputFile, String outputFile) throws IOException {
         Scanner inFile = new Scanner(new File(inputFile));
         PrintWriter outFile = new PrintWriter(new FileWriter(outputFile));
 
         int numberRecords = inFile.nextInt();
-        if (inFile.hasNextInt()) {
-            inFile.nextInt();
-        }
 
         for (int i = 0; i < numberRecords; i++) {
             double[] rawInput = new double[numberInputs];
+            int inputIndex = 0;
+            int safeInputs = (numberInputs > 0) ? numberInputs : 256;
+            int rows = (int) Math.sqrt(safeInputs);
 
-            for (int j = 0; j < numberInputs; j++)
-                rawInput[j] = inFile.nextDouble();
-
+            for (int r = 0; r < rows; r++) {
+                if (inFile.hasNext()) {
+                    String line = inFile.next();
+                    for (int c = 0; c < line.length(); c++) {
+                        double val = (line.charAt(c) == '1') ? 1.0 : 0.0;
+                        if (inputIndex < rawInput.length) {
+                            rawInput[inputIndex] = val;
+                        }
+                        inputIndex++;
+                    }
+                }
+            }
             double[] normalizedOutput = test(rawInput);
-            double[] rawOutput = deNormalizeOutput(normalizedOutput);
-//            for (int j = 0; j < numberOutputs; j++)
-//                outFile.print(rawOutput[j] + " ");
             for (int j = 0; j < numberOutputs; j++){
-                outFile.print(deNormalize(normalizedOutput[j], outputMin[j], outputMax[j]) + " ");
+                double val = deNormalize(normalizedOutput[j], outputMin[j], outputMax[j]);
+                long rounded = Math.round(val);
+                if (rounded == 0) outFile.print("zero ");
+                else if (rounded == 1) outFile.print("one ");
+                else if (rounded == 2) outFile.print("two ");
+                else outFile.print(rounded + " ");
             }
             outFile.println();
         }
@@ -404,49 +443,53 @@ public class NeuralNetwork {
     //Method validates the network using the data from a file
     public double validate(String validationFile) throws IOException {
         Scanner inFile = new Scanner(new File(validationFile));
+        int validationRecords = inFile.nextInt();
 
-        int numberRecords = inFile.nextInt();
         double sumError = 0;
 
-        for (int i = 0; i < numberRecords; i++) {
-
-            // read raw inputs
+        for (int i = 0; i < validationRecords; i++) {
             double[] rawInput = new double[numberInputs];
-            for (int j = 0; j < numberInputs; j++)
-                rawInput[j] = inFile.nextDouble();
+            int inputIndex = 0;
+            int rows = (int) Math.sqrt(numberInputs);
 
-            // read raw actual outputs
+            for (int r = 0; r < rows; r++) {
+                String line = inFile.next();
+                for (int c = 0; c < line.length(); c++) {
+                    double val = (line.charAt(c) == '1') ? 1.0 : 0.0;
+                    rawInput[inputIndex] = val;
+                    inputIndex++;
+                }
+            }
             double[] actualOutput = new double[numberOutputs];
-            for (int j = 0; j < numberOutputs; j++)
-                actualOutput[j] = inFile.nextDouble();
+            String label = inFile.next();
+            double outVal = 0.0;
+            if (label.equalsIgnoreCase("zero")) outVal = 0.0;
+            else if (label.equalsIgnoreCase("one")) outVal = 1.0;
+            else if (label.equalsIgnoreCase("two")) outVal = 2.0;
 
-            // find normalized predicted outputs
-            double[] predictedNormalizedOutput = test(rawInput);
+            actualOutput[0] = outVal;
 
-            // de-normalize predicted outputs
-            double[] predictedOutput = deNormalizeOutput(predictedNormalizedOutput);
-            //double[] predictedOutput = predictedNormalizedOutput;
-
-            // find error between raw actual and raw predicted outputs
             sumError += computeError(normalizeOutput(actualOutput), test(rawInput));
-
         }
-        inFile.close();
-        return sumError / numberRecords;
-    }
 
+        inFile.close();
+        return sumError / validationRecords;
+    }
     /*************************************************************************/
 
-    //Method finds root mean square error between actual and predicted output
+    //Method finds error rate
     private double computeError(double[] actualOutput, double[] predictedOutput) {
         double error = 0;
 
-        //sum of squares of errors
-        for (int i = 0; i < actualOutput.length; i++)
-            error += Math.pow(actualOutput[i] - predictedOutput[i], 2);
+        // find error rate
+        for (int i = 0; i < actualOutput.length; i++) {
+            error += Math.abs(actualOutput[i] - predictedOutput[i]);
+        }
+        error /= actualOutput.length;
+        error *= 100;
 
-        //root mean square error
-        return Math.sqrt(error / actualOutput.length);
+        // error rate
+        return error;
     }
 
     /*************************************************************************/

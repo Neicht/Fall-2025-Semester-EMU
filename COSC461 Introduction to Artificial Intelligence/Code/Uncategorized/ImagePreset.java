@@ -1,4 +1,4 @@
-package Project2.q2.program;
+package Uncategorized;
 
 public enum ImagePreset {
 

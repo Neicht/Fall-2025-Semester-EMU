@@ -1,13 +1,14 @@
-package Project2.q2.program;
+package Uncategorized;
 
-import java.io.File;
+import Project2.q2.program.Image;
+import Project2.q2.program.TerminalInterface;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import Project2.q2.program.ImagePreset;
 
 public class MakeImages {
     private String path;
@@ -50,18 +51,18 @@ public class MakeImages {
     }
 
     public void run() {
-        TerminalInterface terminal = loadTerminalInterface();
+        Project2.q2.program.TerminalInterface terminal = loadTerminalInterface();
         terminal.start();
     }
 
-    public TerminalInterface loadTerminalInterface() {
-        TerminalInterface t = new TerminalInterface();
+    public Project2.q2.program.TerminalInterface loadTerminalInterface() {
+        Project2.q2.program.TerminalInterface t = new Project2.q2.program.TerminalInterface();
         initializeOptions(t);
         return t;
     }
 
-    public void initializeOptions(TerminalInterface t) {
-        TerminalInterface.MenuNode root = t.getRootMenu();
+    public void initializeOptions(Project2.q2.program.TerminalInterface t) {
+        Project2.q2.program.TerminalInterface.MenuNode root = t.getRootMenu();
 
         setupFileMenu(t, root);
         setupImageMenu(t, root);
@@ -70,8 +71,8 @@ public class MakeImages {
         setupProgramMenu(t, root);
     }
 
-    private void setupFileMenu(TerminalInterface t, TerminalInterface.MenuNode root) {
-        TerminalInterface.MenuNode fileMenu = t.addCategory("File", root);
+    private void setupFileMenu(Project2.q2.program.TerminalInterface t, Project2.q2.program.TerminalInterface.MenuNode root) {
+        Project2.q2.program.TerminalInterface.MenuNode fileMenu = t.addCategory("File", root);
         t.addOption(fileMenu, "Set Path", "Set the path to the images directory", (iface) -> {
             iface.out("Current path is: " + MakeImages.this.path);
             iface.out("Enter new path (end with /):");
@@ -102,8 +103,8 @@ public class MakeImages {
         });
     }
 
-    private void setupImageMenu(TerminalInterface t, TerminalInterface.MenuNode root) {
-        TerminalInterface.MenuNode imageMenu = t.addCategory("Image", root);
+    private void setupImageMenu(Project2.q2.program.TerminalInterface t, Project2.q2.program.TerminalInterface.MenuNode root) {
+        Project2.q2.program.TerminalInterface.MenuNode imageMenu = t.addCategory("Image", root);
         t.addOption(imageMenu, "Display Image", "Display the current image in the console", (iface) -> {
             iface.out("Current Image:");
             MakeImages.this.image.display();
@@ -130,8 +131,8 @@ public class MakeImages {
         });
     }
 
-    private void setupDistortMenu(TerminalInterface t, TerminalInterface.MenuNode root) {
-        TerminalInterface.MenuNode distortMenu = t.addCategory("Distort", root);
+    private void setupDistortMenu(Project2.q2.program.TerminalInterface t, Project2.q2.program.TerminalInterface.MenuNode root) {
+        Project2.q2.program.TerminalInterface.MenuNode distortMenu = t.addCategory("Distort", root);
         t.addOption(distortMenu, "Apply Scale", "Scale image using current X and Y factors", (iface) -> {
             iface.out("Applying scale: " + MakeImages.this.scaleX + "x, " + MakeImages.this.scaleY + "y");
             MakeImages.this.image.applyScale(MakeImages.this.scaleX, MakeImages.this.scaleY);
@@ -158,7 +159,7 @@ public class MakeImages {
             MakeImages.this.image.display();
         });
 
-        TerminalInterface.MenuNode paramsMenu = t.addCategory("Modify Parameters", distortMenu);
+        Project2.q2.program.TerminalInterface.MenuNode paramsMenu = t.addCategory("Modify Parameters", distortMenu);
         t.addOption(paramsMenu, "Set Scale X", "Set the horizontal scale factor (1.0 = normal)", (iface) -> {
             iface.out("Current Scale X: " + MakeImages.this.scaleX);
             MakeImages.this.scaleX = iface.inDouble("Enter new Scale X (e.g., 1.2):");
@@ -186,8 +187,8 @@ public class MakeImages {
         });
     }
 
-    private void setupBatchMenu(TerminalInterface t, TerminalInterface.MenuNode root) {
-        TerminalInterface.MenuNode batchMenu = t.addCategory("Batch", root);
+    private void setupBatchMenu(Project2.q2.program.TerminalInterface t, Project2.q2.program.TerminalInterface.MenuNode root) {
+        Project2.q2.program.TerminalInterface.MenuNode batchMenu = t.addCategory("Batch", root);
 
         t.addOption(batchMenu, "Generate Training File", "Generate 20+ images (zeros, ones, twos)", (iface) -> {
             iface.out("--- Generate Training File ---");
@@ -219,7 +220,7 @@ public class MakeImages {
         }
     }
 
-    private void runBatchGeneration(TerminalInterface iface, String fileName, int numZeros, int numOnes, int numTwos, String setType) {
+    private void runBatchGeneration(Project2.q2.program.TerminalInterface iface, String fileName, int numZeros, int numOnes, int numTwos, String setType) {
         iface.out("--- Batch Generation Parameters ---");
         double maxShear = iface.inDouble("Max Shear (e.g., 0.4)?");
         double minScale = iface.inDouble("Min Scale (e.g., 0.8)?");
@@ -296,7 +297,7 @@ public class MakeImages {
         iface.out("Time taken: " + (endTime - startTime) + "ms");
     }
 
-    private void setupProgramMenu(TerminalInterface t, TerminalInterface.MenuNode root) {
+    private void setupProgramMenu(Project2.q2.program.TerminalInterface t, Project2.q2.program.TerminalInterface.MenuNode root) {
         TerminalInterface.MenuNode programMenu = t.addCategory("Program", root);
         t.addOption(programMenu, "Status", "Display all current settings and image status", (iface) -> {
             iface.out("--- Current Program Status ---");

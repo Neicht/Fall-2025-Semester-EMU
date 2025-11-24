@@ -1,59 +1,69 @@
-package Project3.q1.program;
+package Project3.q2.program;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.Scanner;
 
 //Neural network
 public class NeuralNetwork {
     /*************************************************************************/
 
-    //Record class
+    // Record class
     private class Record {
-        private double[] input;     //inputs of record  
-        private double[] output;    //outputs of record        
+        private double[] input; // inputs of record
+        private double[] output; // outputs of record
 
-        //Constructor of Record
+        // Constructor of Record
         private Record(double[] input, double[] output) {
-            this.input = input;     //set inputs
-            this.output = output;   //set outputs
+            this.input = input; // set inputs
+            this.output = output; // set outputs
         }
     }
 
     /*************************************************************************/
 
-    private ArrayList<Record> records;   //list of training records
-    private int numberRecords;           //number of training records 
+    private ArrayList<Record> records; // list of training records
+    private int numberRecords; // number of training records
 
-    private int numberInputs;            //number of inputs 
-    private int numberOutputs;           //number of outputs
+    private int numberInputs; // number of inputs
+    private int numberOutputs; // number of outputs
 
-    private int numberMiddle;            //number of hidden nodes
-    private int numberIterations;        //number of iterations
-    private double rate;                 //learning rate
+    private int numberMiddle; // number of hidden nodes
+    private int numberIterations; // number of iterations
+    private double rate; // learning rate
 
-    private double[] input;              //inputs
-    private double[] middle;             //outputs at hidden nodes
-    private double[] output;             //outputs at output nodes
+    private double[] input; // inputs
+    private double[] middle; // outputs at hidden nodes
+    private double[] output; // outputs at output nodes
 
-    private double[] errorMiddle;        //errors at hidden nodes
-    private double[] errorOut;           //errors at output nodes
+    private double[] errorMiddle; // errors at hidden nodes
+    private double[] errorOut; // errors at output nodes
 
-    private double[] thetaMiddle;        //thetas at hidden nodes
-    private double[] thetaOut;           //threats! at output nodes
+    private double[] thetaMiddle; // thetas at hidden nodes
+    private double[] thetaOut; // threats! at output nodes
 
-    private double[][] matrixMiddle;     //weights between input/hidden nodes 
-    private double[][] matrixOut;        //weights between hidden/output nodes
+    private double[][] matrixMiddle; // weights between input/hidden nodes
+    private double[][] matrixOut; // weights between hidden/output nodes
 
     double[] inputMin;
     double[] inputMax;
     double[] outputMin;
     double[] outputMax;
 
+    private final double LOW = 0.50;
+    private final double HIGH = 1.0;
+    private final double UNDETERMINED = 0.25;
+    private final double MEDIUM = 0.75;
+
     /*************************************************************************/
 
-    //Constructor of neural network
+    // Constructor of neural network
     public NeuralNetwork() {
-        //parameters are zero
+        // parameters are zero
         numberRecords = 0;
         numberInputs = 0;
         numberOutputs = 0;
@@ -61,7 +71,7 @@ public class NeuralNetwork {
         numberIterations = 0;
         rate = 0;
 
-        //arrays are empty
+        // arrays are empty
         records = null;
         input = null;
         middle = null;
@@ -76,7 +86,7 @@ public class NeuralNetwork {
 
     /*************************************************************************/
 
-    //Method loads training records from training file
+    // Method loads training records from training file
     public void loadTrainingData(String trainingFile) throws IOException {
         Scanner inFile = new Scanner(new File(trainingFile));
 
@@ -106,43 +116,70 @@ public class NeuralNetwork {
         // loop: {
         // for i : number records;
         // create double[numberInputs] and double[numberOutputs];
-//             {
-//             for j : numberInputs; for j : numberOutputs;
-//             val = inFile.nextDouble(); if (val < min) min = val; if (val > max) max = val; for both input and output
-//             separately
-//             }
+        // {
+        // for j : numberInputs; for j : numberOutputs;
+        // val = inFile.nextDouble(); if (val < min) min = val; if (val > max) max =
+        // val; for both input and output
+        // separately
+        // }
         // add record to tempRecords
         // }
 
         for (int i = 0; i < numberRecords; i++) {
 
-
             double[] input = new double[numberInputs];
             for (int j = 0; j < numberInputs; j++) {
-                double val = inFile.nextDouble();
+                String inputString = inFile.next();
+                double val = switch (inputString) {
+                    case "low" -> LOW;
+                    case "medium" -> MEDIUM;
+                    case "high" -> HIGH;
+                    case "undetermined" -> UNDETERMINED;
+                    case "female" -> 1;
+                    case "male" -> 0;
+                    case "single" -> 0;
+                    case "married" -> 1;
+                    case "divorced" -> 0.5;
+                    default -> Double.parseDouble(inputString);
+                };
                 input[j] = val;
-                if (val < inputMin[j]) inputMin[j] = val;
-                if (val > inputMax[j]) inputMax[j] = val;
+                if (val < inputMin[j])
+                    inputMin[j] = val;
+                if (val > inputMax[j])
+                    inputMax[j] = val;
             }
 
             double[] output = new double[numberOutputs];
             for (int j = 0; j < numberOutputs; j++) {
-                double val = inFile.nextDouble();
+                String inputString = inFile.next();
+                double val = switch (inputString) {
+                    case "low" -> LOW;
+                    case "medium" -> MEDIUM;
+                    case "high" -> HIGH;
+                    case "undetermined" -> UNDETERMINED;
+                    case "female" -> 1;
+                    case "male" -> 0;
+                    case "single" -> 0;
+                    case "married" -> 1;
+                    case "divorced" -> 0.5;
+                    default -> Double.parseDouble(inputString);
+                };
                 output[j] = val;
-                if (val < outputMin[j]) outputMin[j] = val;
-                if (val > outputMax[j]) outputMax[j] = val;
+                if (val < outputMin[j])
+                    outputMin[j] = val;
+                if (val > outputMax[j])
+                    outputMax[j] = val;
             }
-
 
             tempRecords.add(new Record(input, output));
         }
-
 
         // close infile and create new record arraylist
         inFile.close();
         records = new ArrayList<Record>();
         // for each record in tempRecords
-        // new double of inputs and outputs; normalize rawRecord.input and rawRecord.output
+        // new double of inputs and outputs; normalize rawRecord.input and
+        // rawRecord.output
         // add normalized record information to records
         for (Record rawRecord : tempRecords) {
             double[] normalizedInput = normalizeInput(rawRecord.input);
@@ -152,7 +189,7 @@ public class NeuralNetwork {
         }
     }
 
-    //normalize given a value, with min and max
+    // normalize given a value, with min and max
     private double normalize(double x, double min, double max) {
 
         double roundedMin = Math.round(min);
@@ -217,43 +254,43 @@ public class NeuralNetwork {
 
     /*************************************************************************/
 
-    //Method sets parameters of neural network
+    // Method sets parameters of neural network
     public void setParameters(int numberMiddle, int numberIterations, double rate,
-                              int seed) {
-        //set hidden nodes, iterations, rate
+            int seed) {
+        // set hidden nodes, iterations, rate
         this.numberMiddle = numberMiddle;
         this.numberIterations = numberIterations;
         this.rate = rate;
 
-        //initialize random number generation
+        // initialize random number generation
         Random rand = new Random(seed);
 
-        //create input/output arrays
+        // create input/output arrays
         input = new double[numberInputs];
         middle = new double[numberMiddle];
         output = new double[numberOutputs];
 
-        //create error arrays
+        // create error arrays
         errorMiddle = new double[numberMiddle];
         errorOut = new double[numberOutputs];
 
-        //initialize thetas at hidden nodes
+        // initialize thetas at hidden nodes
         thetaMiddle = new double[numberMiddle];
         for (int i = 0; i < numberMiddle; i++)
             thetaMiddle[i] = 2 * rand.nextDouble() - 1;
 
-        //initialize thetas at output nodes
+        // initialize thetas at output nodes
         thetaOut = new double[numberOutputs];
         for (int i = 0; i < numberOutputs; i++)
             thetaOut[i] = 2 * rand.nextDouble() - 1;
 
-        //initialize weights between input/hidden nodes
+        // initialize weights between input/hidden nodes
         matrixMiddle = new double[numberInputs][numberMiddle];
         for (int i = 0; i < numberInputs; i++)
             for (int j = 0; j < numberMiddle; j++)
                 matrixMiddle[i][j] = 2 * rand.nextDouble() - 1;
 
-        //initialize weights between hidden/output nodes
+        // initialize weights between hidden/output nodes
         matrixOut = new double[numberMiddle][numberOutputs];
         for (int i = 0; i < numberMiddle; i++)
             for (int j = 0; j < numberOutputs; j++)
@@ -262,68 +299,68 @@ public class NeuralNetwork {
 
     /*************************************************************************/
 
-    //Method trains neural network
+    // Method trains neural network
     public void train() {
-        //repeat iteration number of times
+        // repeat iteration number of times
         for (int i = 0; i < numberIterations; i++)
-            //for each training record
+            // for each training record
             for (int j = 0; j < numberRecords; j++) {
-                //calculate input/output
+                // calculate input/output
                 forwardCalculation(records.get(j).input);
 
-                //compute errors, update weights/thetas
+                // compute errors, update weights/thetas
                 backwardCalculation(records.get(j).output);
             }
     }
 
     /*************************************************************************/
 
-    //Method performs forward pass - computes input/output
+    // Method performs forward pass - computes input/output
     private void forwardCalculation(double[] trainingInput) {
-        //feed inputs of record
+        // feed inputs of record
         for (int i = 0; i < numberInputs; i++)
             input[i] = trainingInput[i];
 
-        //for each hidden node
+        // for each hidden node
         for (int i = 0; i < numberMiddle; i++) {
             double sum = 0;
 
-            //compute input at hidden node
+            // compute input at hidden node
             for (int j = 0; j < numberInputs; j++)
                 sum += input[j] * matrixMiddle[j][i];
 
-            //add theta
+            // add theta
             sum += thetaMiddle[i];
 
-            //compute output at hidden node
+            // compute output at hidden node
             middle[i] = 1 / (1 + Math.exp(-sum));
         }
 
-        //for each output node
+        // for each output node
         for (int i = 0; i < numberOutputs; i++) {
             double sum = 0;
 
-            //compute input at output node
+            // compute input at output node
             for (int j = 0; j < numberMiddle; j++)
                 sum += middle[j] * matrixOut[j][i];
 
-            //add theta
+            // add theta
             sum += thetaOut[i];
 
-            //compute output at output node
+            // compute output at output node
             output[i] = 1 / (1 + Math.exp(-sum));
         }
     }
 
     /*************************************************************************/
 
-    //Method performs backward pass - computes errors, updates weights/thetas
+    // Method performs backward pass - computes errors, updates weights/thetas
     private void backwardCalculation(double[] trainingOutput) {
-        //compute error at each output node
+        // compute error at each output node
         for (int i = 0; i < numberOutputs; i++)
             errorOut[i] = output[i] * (1 - output[i]) * (trainingOutput[i] - output[i]);
 
-        //compute error at each hidden node
+        // compute error at each hidden node
         for (int i = 0; i < numberMiddle; i++) {
             double sum = 0;
 
@@ -333,64 +370,105 @@ public class NeuralNetwork {
             errorMiddle[i] = middle[i] * (1 - middle[i]) * sum;
         }
 
-        //update weights between hidden/output nodes
+        // update weights between hidden/output nodes
         for (int i = 0; i < numberMiddle; i++)
             for (int j = 0; j < numberOutputs; j++)
                 matrixOut[i][j] += rate * middle[i] * errorOut[j];
 
-        //update weights between input/hidden nodes
+        // update weights between input/hidden nodes
         for (int i = 0; i < numberInputs; i++)
             for (int j = 0; j < numberMiddle; j++)
                 matrixMiddle[i][j] += rate * input[i] * errorMiddle[j];
 
-        //update thetas at output nodes
+        // update thetas at output nodes
         for (int i = 0; i < numberOutputs; i++)
             thetaOut[i] += rate * errorOut[i];
 
-        //update thetas at hidden nodes
+        // update thetas at hidden nodes
         for (int i = 0; i < numberMiddle; i++)
             thetaMiddle[i] += rate * errorMiddle[i];
     }
 
     /*************************************************************************/
 
-    //Method computes output of an input
+    // Method computes output of an input
     private double[] test(double[] rawInput) {
         // Normalize the raw input before feeding it to the network
         double[] normalizedInput = normalizeInput(rawInput);
 
-        //forward pass normalized input
+        // forward pass normalized input
         forwardCalculation(normalizedInput);
 
-        //return normalized output produced
+        // return normalized output produced
         return output;
     }
 
     /*************************************************************************/
 
-    //Method reads inputs from input file, computes outputs, and writes outputs
-    //to output file
+    // Method reads inputs from input file, computes outputs, and writes outputs
+    // to output file
     public void testData(String inputFile, String outputFile) throws IOException {
         Scanner inFile = new Scanner(new File(inputFile));
         PrintWriter outFile = new PrintWriter(new FileWriter(outputFile));
 
         int numberRecords = inFile.nextInt();
-        if (inFile.hasNextInt()) {
-            inFile.nextInt();
-        }
+        // if (inFile.hasNextInt()) {
+        // inFile.nextInt();
+        // }
 
         for (int i = 0; i < numberRecords; i++) {
             double[] rawInput = new double[numberInputs];
 
-            for (int j = 0; j < numberInputs; j++)
-                rawInput[j] = inFile.nextDouble();
-
+            for (int j = 0; j < numberInputs; j++) {
+                String inputString = inFile.next();
+                double val = switch (inputString) {
+                    case "low" -> LOW;
+                    case "medium" -> MEDIUM;
+                    case "high" -> HIGH;
+                    case "undetermined" -> UNDETERMINED;
+                    case "female" -> 1;
+                    case "male" -> 0;
+                    case "single" -> 0;
+                    case "married" -> 1;
+                    case "divorced" -> 0.5;
+                    default -> Double.parseDouble(inputString);
+                };
+                rawInput[j] = val;
+            }
             double[] normalizedOutput = test(rawInput);
             double[] rawOutput = deNormalizeOutput(normalizedOutput);
-//            for (int j = 0; j < numberOutputs; j++)
-//                outFile.print(rawOutput[j] + " ");
-            for (int j = 0; j < numberOutputs; j++){
-                outFile.print(deNormalize(normalizedOutput[j], outputMin[j], outputMax[j]) + " ");
+            // for (int j = 0; j < numberOutputs; j++)
+            // outFile.print(rawOutput[j] + " ");
+
+
+            // using absolute difference to determine because I hadn't realized yet that the validation
+            // method was the issue.
+            for (int j = 0; j < numberOutputs; j++) {
+                double denormalizedValue = deNormalize(normalizedOutput[j], outputMin[j], outputMax[j]);
+                String denormalizedValueString = "ERR";
+
+                double distLow = Math.abs(denormalizedValue - LOW);
+                double distMedium = Math.abs(denormalizedValue - MEDIUM);
+                double distHigh = Math.abs(denormalizedValue - HIGH);
+                double distUndetermined = Math.abs(denormalizedValue - UNDETERMINED);
+
+                double minDist = distLow;
+                denormalizedValueString = "low";
+
+                if (distMedium < minDist) {
+                    minDist = distMedium;
+                    denormalizedValueString = "medium";
+                }
+                if (distHigh < minDist) {
+                    minDist = distHigh;
+                    denormalizedValueString = "high";
+                }
+                if (distUndetermined < minDist) {
+                    minDist = distUndetermined;
+                    denormalizedValueString = "undetermined";
+                }
+
+                outFile.print(denormalizedValueString + " ");
             }
             outFile.println();
         }
@@ -401,7 +479,7 @@ public class NeuralNetwork {
 
     /*************************************************************************/
 
-    //Method validates the network using the data from a file
+    // Method validates the network using the data from a file
     public double validate(String validationFile) throws IOException {
         Scanner inFile = new Scanner(new File(validationFile));
 
@@ -412,41 +490,93 @@ public class NeuralNetwork {
 
             // read raw inputs
             double[] rawInput = new double[numberInputs];
-            for (int j = 0; j < numberInputs; j++)
-                rawInput[j] = inFile.nextDouble();
-
+            for (int j = 0; j < numberInputs; j++) {
+                String inputString = inFile.next();
+                double val = switch (inputString) {
+                    case "low" -> LOW;
+                    case "medium" -> MEDIUM;
+                    case "high" -> HIGH;
+                    case "undetermined" -> UNDETERMINED;
+                    case "female" -> 1;
+                    case "male" -> 0;
+                    case "single" -> 0;
+                    case "married" -> 1;
+                    case "divorced" -> 0.5;
+                    default -> Double.parseDouble(inputString);
+                };
+                rawInput[j] = val;
+            }
             // read raw actual outputs
             double[] actualOutput = new double[numberOutputs];
-            for (int j = 0; j < numberOutputs; j++)
-                actualOutput[j] = inFile.nextDouble();
-
+            for (int j = 0; j < numberOutputs; j++) {
+                String inputString = inFile.next();
+                double val = switch (inputString) {
+                    case "low" -> LOW;
+                    case "medium" -> MEDIUM;
+                    case "high" -> HIGH;
+                    case "undetermined" -> UNDETERMINED;
+                    case "female" -> 1;
+                    case "male" -> 0;
+                    case "single" -> 0;
+                    case "married" -> 1;
+                    case "divorced" -> 0.5;
+                    default -> Double.parseDouble(inputString);
+                };
+                actualOutput[j] = val;
+            }
             // find normalized predicted outputs
             double[] predictedNormalizedOutput = test(rawInput);
 
             // de-normalize predicted outputs
             double[] predictedOutput = deNormalizeOutput(predictedNormalizedOutput);
-            //double[] predictedOutput = predictedNormalizedOutput;
+            // double[] predictedOutput = predictedNormalizedOutput;
 
             // find error between raw actual and raw predicted outputs
-            sumError += computeError(normalizeOutput(actualOutput), test(rawInput));
+            sumError += computeError(actualOutput, predictedOutput);
 
         }
         inFile.close();
         return sumError / numberRecords;
     }
 
-    /*************************************************************************/
-
-    //Method finds root mean square error between actual and predicted output
     private double computeError(double[] actualOutput, double[] predictedOutput) {
         double error = 0;
 
-        //sum of squares of errors
-        for (int i = 0; i < actualOutput.length; i++)
-            error += Math.pow(actualOutput[i] - predictedOutput[i], 2);
+        // error rate
+        for (int i = 0; i < actualOutput.length; i++) {
+            String actualLabel = classify(actualOutput[i]);
+            String predictedLabel = classify(predictedOutput[i]);
+            if (!actualLabel.equals(predictedLabel)) {
+                error += 100.0;
+            }
+        }
 
-        //root mean square error
-        return Math.sqrt(error / actualOutput.length);
+        // no longer rmse, returns error rate
+        return error / actualOutput.length;
+    }
+
+    private String classify(double val) {
+        double distLow = Math.abs(val - LOW);
+        double distMedium = Math.abs(val - MEDIUM);
+        double distHigh = Math.abs(val - HIGH);
+        double distUndetermined = Math.abs(val - UNDETERMINED);
+
+        double minDist = distLow;
+        String label = "low";
+
+        if (distMedium < minDist) {
+            minDist = distMedium;
+            label = "medium";
+        }
+        if (distHigh < minDist) {
+            minDist = distHigh;
+            label = "high";
+        }
+        if (distUndetermined < minDist) {
+            minDist = distUndetermined;
+            label = "undetermined";
+        }
+        return label;
     }
 
     /*************************************************************************/

@@ -99,7 +99,7 @@ public class NearestNeighbor {
             if (actualSkips == 0) {
                 throw new RuntimeException("Zero records skipped for validation (skipIndex=" + skipIndex + ")");
             }
-            numberRecords -= 1;
+
         }
 
         // close file

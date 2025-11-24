@@ -1,6 +1,8 @@
-package Project3.q1.program;
+package Project3.q3.program;
 
-import java.io.*;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 public class NeuralNetworkTester {
     int numberMiddle, numberIterations, seed;
@@ -70,7 +72,6 @@ public class NeuralNetworkTester {
 //        t.addOption(t.getRootMenu(), "Exit Program", "Close the application", TerminalInterface::stop);
     }
 
-
     private void tune(TerminalInterface t) throws IOException {
         t.tic();
 
@@ -89,9 +90,9 @@ public class NeuralNetworkTester {
         // NOTE: probably don't touch unless fine-tuning
         double[] ratesToTest = t.generateDoubleArray(1, 0, 0.8); // negligible impact on runtime
         // Modify based on the number of records in the training set
-        int[] iterationsToTest = t.generateIntArray(1, 0, 15000); // most impact on runtime
+        int[] iterationsToTest = t.generateIntArray(1, 0, 10000); // most impact on runtime
         // Modify if the number of attributes changes
-        int[] middlesToTest = t.generateIntArray(1, 0, 4); // second most impact on runtime
+        int[] middlesToTest = t.generateIntArray(1, 0, 6); // second most impact on runtime
 
         double bestError = Double.POSITIVE_INFINITY;
         double bestRate = 0;
@@ -153,6 +154,14 @@ public class NeuralNetworkTester {
         tempNetwork.train();
         tempNetwork.testData(getInput_file(), getOutput_file());
         tempNetwork.validate(getValidation_file());
+
+        PrintWriter pw = new PrintWriter(new FileWriter(getOutput_file()));
+        pw.println();
+        pw.println("Validation Error: " + bestError);
+        pw.println("Hidden Nodes: " +  bestMiddle);
+        pw.println("Learn Rate: " + bestRate);
+        pw.println("Iterations: " + bestIterations);
+        pw.println("Seed Value: " + seed);
 
     }
 

@@ -210,6 +210,10 @@ public class TerminalInterface {
         printer.printHistogram(data);
     }
 
+    public void printFancyHistogram(double[] data, String[] labels){
+        printer.printFancyHistogram(data, labels);
+    }
+
     /**
      * Prints a standardized success message (prefixed with [OK]).
      *
@@ -680,6 +684,21 @@ public class TerminalInterface {
      */
     private static class ConsolePrinter {
 
+        public void printFancyHistogram(double[] data, String[] labels) {
+            if (data == null || data.length == 0 || data.length != labels.length) return;
+            double max = -Double.MAX_VALUE;
+            for (double d : data) max = Math.max(max, d);
+
+            int barMax = state.lineWidth - 15;
+            for (int i = 0; i < data.length; i++) {
+                double v = data[i];
+                String s = labels[i];
+                int len = (int) ((v / max) * barMax);
+                String label = String.format("%s %-10.4f |", s, v);
+                out(label + "#".repeat(Math.max(0, len)));
+            }
+        }
+
         private static class State implements Cloneable {
             int lineWidth = 46;
             char lineStyle = '-';
@@ -703,9 +722,7 @@ public class TerminalInterface {
         private final Deque<State> stack = new ArrayDeque<>();
         private PrintWriter logWriter = null;
 
-        // --- Core Output Method (Now handles Indent + Prefix) ---
         public void out(String s) {
-            // 1. Handle multiline strings so indentation applies to all lines
             String[] lines = s.split("\n");
             for (String line : lines) {
                 // Build the final string: Indent + Prefix + Content
@@ -1345,7 +1362,7 @@ public class TerminalInterface {
     }
 
     // ==================================================================================
-    // INNER CLASS: AutomataTools (DFA/NFA/TM Visualization)
+    // INNER CLASS: AutomataTools (DFA/NFA/TM Visualization, DOT File Export)
     // ==================================================================================
 
     /**
